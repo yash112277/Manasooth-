@@ -1,7 +1,18 @@
 
-# Manasooth - Your Mental Wellness Companion
+# Manasooth - Mental Wellness Companion
 
-Manasooth ("मनः सूथ" - where "मनः" means mind and "सूथ" implies soothing or comfort) is a comprehensive web application designed to be a compassionate and insightful partner in an individual's journey towards better mental wellbeing. It offers a rich suite of tools including core mental health assessments (WHO-5, GAD-7, PHQ-9), AI-powered analysis and personalized recommendations, robust progress tracking capabilities, an empathetic AI chatbot for emotional expression, a simulated professional consultation booking system with calendar integration, wellbeing goal setting and tracking, a daily mood tracker, and curated local support resources with a focus on India. The platform is meticulously built with user privacy and accessibility at its core, with all data stored locally in the user's browser. **User signup and login functionality have been removed to enhance privacy and simplify the user experience.**
+Manasooth ("मनः सूथ" - where "मनः" means mind and "सूथ" means soothing) is a privacy-focused mental wellness web application designed to empower individuals in their mental health journey. It provides comprehensive assessment tools, AI-powered analysis, and personalized support - all while keeping user data secure and local. 
+
+## Key Features
+- Mental health assessments (WHO-5, GAD-7, PHQ-9)
+- AI-powered analysis and recommendations
+- Mood tracking and goal setting
+- Empathetic AI chatbot
+- Professional consultation simulation
+- Local support resources (India-focused)
+- Bilingual support (English/Hindi)
+
+All user data is stored locally in the browser, ensuring maximum privacy as no server-side storage or user accounts are required.
 
 ## Table of Contents
 
@@ -212,18 +223,20 @@ Follow these instructions to set up and run the Manasooth project locally on you
 *   **Git:** For version control. Download from [git-scm.com](https://git-scm.com/).
 *   **(Optional but Recommended) Google Cloud Account & Google AI Studio API Key:** For Genkit to use Google AI models (like Gemini), you might need to set up a Google Cloud project and enable the Vertex AI API, or get an API key from Google AI Studio. Refer to [Genkit documentation](https://firebase.google.com/docs/genkit/get-started) for the latest authentication methods and how to set up the `googleAI()` plugin. Your environment typically needs to be authenticated (e.g., via `gcloud auth application-default login` or by setting `GOOGLE_API_KEY`).
 
-### Environment Variables
+### Environment Setup
 
-Create a `.env` file in the root directory of your project. This file will store your API keys and any other sensitive configuration. **Do not commit this file to version control.**
-
-Example `.env` file:
-
+1. Create a `.env` file in the root directory:
 ```env
-# Genkit / Google AI Configuration
-# If your Genkit setup with googleAI() plugin requires an API key directly (e.g., from Google AI Studio):
-# GOOGLE_API_KEY="YOUR_GOOGLE_AI_STUDIO_API_KEY"
-# Alternatively, ensure your environment is authenticated with Google Cloud CLI (gcloud auth application-default login)
-# if the googleAI() plugin is configured to use application-default credentials, which is often preferred for GCP projects.
+# Required - Google AI API Key
+GOOGLE_API_KEY=your_google_ai_studio_api_key
+
+# Optional - Firebase Config (if using other Firebase services)
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+```
+
+**Note:** Firebase configuration is optional since authentication is removed. The Google AI API key is required for assessment analysis and chatbot features.
 
 # Firebase Configuration (Not needed for auth, but keep if using other Firebase services like Firestore in future)
 # NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_FIREBASE_API_KEY_IF_NEEDED_FOR_OTHER_SERVICES"
@@ -235,20 +248,29 @@ Example `.env` file:
 ```
 **Note:** Since login/signup is removed, Firebase configuration variables are only needed if you plan to use other Firebase services (like Firestore for future cloud sync, though that's not currently implemented). For purely local operation, these might not be strictly necessary.
 
-### Installation and Running
+### Quick Start
 
-1.  **Clone the Repository (if you haven't already):**
-    ```bash
-    git clone <your-repository-url>
-    cd manasooth
-    ```
+1. **Install Dependencies:**
+```powershell
+# Navigate to project directory
+cd c:\Users\91962\Personal Projects\firebase\Manasooth\Manasooth\manasooth
 
-2.  **Install Dependencies:**
-    Navigate to the project root and install the necessary npm packages:
-    ```bash
-    npm install
-    ```
-    *(or `yarn install` or `pnpm install` if you prefer and adapt `package.json` scripts)*
+# Install packages
+npm install
+```
+
+2. **Start Development Servers:**
+```powershell
+# Terminal 1: Start Next.js frontend
+npm run dev
+
+# Terminal 2: Start Genkit AI server
+npm run genkit:dev
+```
+
+3. **Access the Application:**
+- Frontend: http://localhost:9002
+- Genkit UI: http://localhost:4000
 
 3.  **Set Up Environment Variables:**
     Create the `.env` file as described in the [Environment Variables](#environment-variables) section and populate it with any required keys (like `GOOGLE_API_KEY` if needed for Genkit).
