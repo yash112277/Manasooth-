@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { bookConsultation, type BookConsultationInput, type BookConsultationOutput } from '@/ai/flows/book-consultation';
-import { useAuth } from '@/contexts/AuthContext';
+// useAuth import removed
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +28,7 @@ export default function ConsultationPage() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isCallActive, setIsCallActive] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  // const { user } = useAuth(); // user removed
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | undefined>(undefined);
@@ -66,7 +66,7 @@ export default function ConsultationPage() {
     const input: BookConsultationInput = {
       date: format(selectedDate, 'yyyy-MM-dd'),
       time: selectedTimeSlot,
-      userName: user?.displayName || user?.email || 'Anonymous User',
+      userName: 'Anonymous User', // User info removed
     };
 
     try {
@@ -107,7 +107,6 @@ export default function ConsultationPage() {
     setBookingStatus(null);
     setSelectedDate(undefined);
     setSelectedTimeSlot(undefined);
-    // If call was active, end it
     if (isCallActive) {
       handleEndCall();
     }
@@ -122,7 +121,7 @@ export default function ConsultationPage() {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-        return true; // Permission granted
+        return true;
       } catch (error) {
         console.error('Error accessing camera/microphone:', error);
         setHasCameraPermission(false);
@@ -131,7 +130,7 @@ export default function ConsultationPage() {
           title: 'Access Denied',
           description: 'Camera and microphone permissions are required. Please enable them in your browser settings.',
         });
-        return false; // Permission denied
+        return false;
       }
     } else {
       setHasCameraPermission(false);
@@ -140,7 +139,7 @@ export default function ConsultationPage() {
         title: 'Unsupported Browser',
         description: 'Your browser does not support the necessary features for video calls.',
       });
-      return false; // Feature not supported
+      return false;
     }
   };
 
@@ -149,7 +148,7 @@ export default function ConsultationPage() {
     if (hasCameraPermission === null || !hasCameraPermission) {
        permissionGranted = await getCameraPermissionAndStart();
     }
-    if (permissionGranted) { // Check the potentially updated permissionGranted
+    if (permissionGranted) {
        setIsCallActive(true);
         toast({ title: "Call Started", description: "Connecting to a professional..." });
     }
@@ -162,7 +161,6 @@ export default function ConsultationPage() {
       stream.getTracks().forEach(track => track.stop());
       videoRef.current.srcObject = null;
     }
-    // Do not reset hasCameraPermission here, let it persist until user leaves page or explicitly revokes.
     toast({ title: "Call Ended", description: "You have disconnected." });
   };
 
@@ -264,7 +262,7 @@ export default function ConsultationPage() {
               {isBooking ? "Booking..." : "Book Appointment"}
             </Button>
           )}
-          {!user && !isBookingSuccessful && <p className="text-xs text-muted-foreground">Login to save your booking history (feature coming soon).</p>}
+          {/* User login message removed */}
         </CardFooter>
       </Card>
       
@@ -281,7 +279,6 @@ export default function ConsultationPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                {/* User Video Area */}
                 <div className="border bg-muted rounded-lg aspect-video flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
                   <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                   {!isCallActive && hasCameraPermission !== true && (
@@ -308,7 +305,6 @@ export default function ConsultationPage() {
                     )}
                 </div>
 
-                {/* Professional Video Area */}
                 <div className="border bg-muted rounded-lg aspect-video flex items-center justify-center shadow-inner" data-ai-hint="professional consultation">
                   {isCallActive ? (
                     <div className="flex flex-col items-center justify-center text-muted-foreground space-y-2">
@@ -371,4 +367,3 @@ export default function ConsultationPage() {
   );
 }
     
-

@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { PlusCircle, Target, ListChecks, Info } from 'lucide-react';
+import { PlusCircle, Target, ListChecks, Info, CheckCircle } from 'lucide-react'; // Added CheckCircle
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import type { UserGoal } from '@/lib/types';
 import { GoalForm } from '@/components/goals/GoalForm';
@@ -145,11 +145,12 @@ export default function GoalsPage() {
             </p>
             <div className="relative aspect-video max-w-sm mx-auto rounded-lg overflow-hidden shadow-md">
                  <Image 
-                    src="https://picsum.photos/400/250" 
+                    src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40" 
                     alt="Person planning goals" 
-                    layout="fill"
-                    objectFit="cover"
-                    data-ai-hint="goal planning"
+                    width={400}
+                    height={250}
+                    className="object-cover w-full h-full"
+                    
                 />
             </div>
           </CardContent>

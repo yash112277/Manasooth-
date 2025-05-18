@@ -263,4 +263,3 @@ export const ASSESSMENTS_DATA: Record<AssessmentTypeValue, Assessment> = {
     }
   },
 };
-

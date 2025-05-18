@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { ASSESSMENT_TYPES, LOCAL_STORAGE_KEYS, ASSESSMENT_NAMES, ASSESSMENT_FLOW } from '@/lib/constants';
+import { ASSESSMENT_TYPES, LOCAL_STORAGE_KEYS, ASSESSMENT_NAMES, ASSESSMENT_FLOW, type AssessmentTypeValue } from '@/lib/constants';
 import type { CompletedAssessmentSet, CurrentScores } from '@/lib/types';
 import { ASSESSMENTS_DATA } from '@/lib/assessment-questions';
 import { Bot, FileText, Lightbulb, Printer, CalendarDays, User, Brain, HeartPulse, Smile } from 'lucide-react';
@@ -49,80 +50,109 @@ export default function ReportPage() {
     const storedScoresString = localStorage.getItem(LOCAL_STORAGE_KEYS.CURRENT_ASSESSMENT_SCORES);
     const progressDataString = localStorage.getItem(LOCAL_STORAGE_KEYS.PROGRESS_DATA);
 
+    let parsedScores: CurrentScores | null = null;
     if (storedScoresString) {
-      const parsedScores = JSON.parse(storedScoresString) as CurrentScores;
-      setCurrentScores(parsedScores);
+      try {
+        parsedScores = JSON.parse(storedScoresString) as CurrentScores;
+        setCurrentScores(parsedScores);
+      } catch(e) {
+        console.error("Failed to parse current scores from localStorage", e);
+        toast({ title: "Error", description: "Could not load current assessment scores.", variant: "destructive" });
+        // Allow to proceed to potentially load from history if current scores are corrupted/missing
+      }
+    }
 
-      if (progressDataString) {
+    if (progressDataString) {
+      try {
         const allProgress = JSON.parse(progressDataString) as CompletedAssessmentSet[];
         if (allProgress.length > 0) {
-          // Find the latest report that matches the current scores
-          // This assumes currentScores reflects the session leading to the report.
           const latestReport = allProgress
-            .slice() // Create a copy before sorting to avoid mutating original order if needed elsewhere
-            .sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()) // Ensure latest is first
-            .find(report => 
-              report.who5Score === parsedScores.who5 &&
-              report.gad7Score === parsedScores.gad7 &&
-              report.phq9Score === parsedScores.phq9
+            .slice()
+            .sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime())[0];
+          
+          // If currentScores were successfully parsed, try to find a matching report
+          // Otherwise, use the absolute latest report from history.
+          let reportToUse = latestReport;
+          if (parsedScores) {
+            const matchingReport = allProgress.find(report => 
+              report.who5Score === parsedScores?.who5 &&
+              report.gad7Score === parsedScores?.gad7 &&
+              report.phq9Score === parsedScores?.phq9
+              // Add other core assessments if they become mandatory in CurrentScores
             );
-
-          if(latestReport) {
-            setReportData(latestReport);
-          } else {
-             // If no exact match, use the scores and indicate AI data might be missing or from another session
-             setReportData({
-              date: new Date().toISOString(), // Use current date as report generation date
-              who5Score: parsedScores.who5,
-              gad7Score: parsedScores.gad7,
-              phq9Score: parsedScores.phq9,
-              aiFeedback: "AI feedback for this specific combination of scores was not found in your history. Displaying scores only for this report.",
-              aiRecommendations: "AI recommendations for this specific combination of scores was not found.",
-              requiresConsultation: parsedScores.who5 !== undefined && parsedScores.who5 < 50 || 
-                                    parsedScores.gad7 !== undefined && parsedScores.gad7 >= 10 || 
-                                    parsedScores.phq9 !== undefined && parsedScores.phq9 >=10,
-            });
-            toast({
-              title: "Partial Report Data",
-              description: "Displaying current scores. AI analysis shown may be from a previous session or unavailable if not found.",
-              variant: "default",
-              duration: 7000,
-            });
+            if (matchingReport) reportToUse = matchingReport;
+            else if (latestReport) {
+                toast({
+                title: "Using Latest Report Data",
+                description: "Displaying the most recent historical report as current scores didn't match a specific entry.",
+                variant: "default",
+                duration: 7000,
+                });
+            }
           }
-        } else { // No progress data at all, but current scores exist
+          setReportData(reportToUse);
+          // Ensure currentScores reflect the report being displayed if they were initially mismatched or missing
+          if (reportToUse && (!parsedScores || reportToUse.date !== (parsedScores as any)?.date ) ) { // A bit hacky check for date if parsedScores had a date
+             setCurrentScores({
+                [ASSESSMENT_TYPES.WHO5]: reportToUse.who5Score,
+                [ASSESSMENT_TYPES.GAD7]: reportToUse.gad7Score,
+                [ASSESSMENT_TYPES.PHQ9]: reportToUse.phq9Score,
+             });
+          }
+
+        } else if (parsedScores) { // No progress history, but current scores exist
             setReportData({
                 date: new Date().toISOString(),
                 who5Score: parsedScores.who5,
                 gad7Score: parsedScores.gad7,
                 phq9Score: parsedScores.phq9,
-                aiFeedback: "AI analysis not yet available for these scores.",
-                aiRecommendations: "AI recommendations not yet available for these scores.",
+                aiFeedback: "AI analysis not yet available for these scores (no history).",
+                aiRecommendations: "AI recommendations not yet available for these scores (no history).",
                 requiresConsultation: parsedScores.who5 !== undefined && parsedScores.who5 < 50 || 
                                     parsedScores.gad7 !== undefined && parsedScores.gad7 >= 10 || 
                                     parsedScores.phq9 !== undefined && parsedScores.phq9 >=10,
             });
         }
-      } else { // No progress data, but current scores exist
-        setReportData({
-          date: new Date().toISOString(),
-          who5Score: parsedScores.who5,
-          gad7Score: parsedScores.gad7,
-          phq9Score: parsedScores.phq9,
-          aiFeedback: "AI analysis not available for this report generation (no history found).",
-          aiRecommendations: "AI recommendations not available for this report generation (no history found).",
-          requiresConsultation: parsedScores.who5 !== undefined && parsedScores.who5 < 50 || 
-                                parsedScores.gad7 !== undefined && parsedScores.gad7 >= 10 || 
-                                parsedScores.phq9 !== undefined && parsedScores.phq9 >=10,
-        });
-         toast({
-            title: "AI Insights Not Available",
-            description: "No AI analysis history found. The report will show current scores only.",
-            variant: "default",
-          });
+      } catch (e) {
+        console.error("Failed to parse progress data from localStorage", e);
+        toast({ title: "Error", description: "Could not load progress history.", variant: "destructive" });
+        // If progress history fails but current scores exist, create a basic report from current scores
+        if (parsedScores) {
+             setReportData({
+                date: new Date().toISOString(),
+                who5Score: parsedScores.who5,
+                gad7Score: parsedScores.gad7,
+                phq9Score: parsedScores.phq9,
+                aiFeedback: "AI analysis not available (history error).",
+                aiRecommendations: "AI recommendations not available (history error).",
+                requiresConsultation: parsedScores.who5 !== undefined && parsedScores.who5 < 50 || 
+                                    parsedScores.gad7 !== undefined && parsedScores.gad7 >= 10 || 
+                                    parsedScores.phq9 !== undefined && parsedScores.phq9 >=10,
+            });
+        }
       }
-    } else {
-      toast({ title: "Error", description: "No assessment scores found to generate a report.", variant: "destructive" });
-      router.push('/assessment/results');
+    } else if (parsedScores) { // No progress data string, but current scores exist
+      setReportData({
+        date: new Date().toISOString(),
+        who5Score: parsedScores.who5,
+        gad7Score: parsedScores.gad7,
+        phq9Score: parsedScores.phq9,
+        aiFeedback: "AI analysis not available for this report generation (no history found).",
+        aiRecommendations: "AI recommendations not available for this report generation (no history found).",
+        requiresConsultation: parsedScores.who5 !== undefined && parsedScores.who5 < 50 || 
+                              parsedScores.gad7 !== undefined && parsedScores.gad7 >= 10 || 
+                              parsedScores.phq9 !== undefined && parsedScores.phq9 >=10,
+      });
+      toast({
+        title: "AI Insights Not Available",
+        description: "No AI analysis history found. The report will show current scores only.",
+        variant: "default",
+      });
+    }
+
+    if (!storedScoresString && !progressDataString) {
+        toast({ title: "Error", description: "No assessment scores found to generate a report.", variant: "destructive" });
+        router.push('/assessment/results');
     }
     setIsLoading(false);
   }, [router, toast, isClient]);
@@ -131,9 +161,9 @@ export default function ReportPage() {
     window.print();
   };
 
-  const getScoreInterpretation = (type: keyof CurrentScores, score?: number) => {
+  const getScoreInterpretation = (type: AssessmentTypeValue, score?: number) => {
     if (score === undefined) return "Not taken";
-    const assessmentData = ASSESSMENTS_DATA[type as keyof typeof ASSESSMENTS_DATA];
+    const assessmentData = ASSESSMENTS_DATA[type];
     if (!assessmentData?.interpretation) return `Score: ${score}`;
     for (const range in assessmentData.interpretation) {
       const [min, max] = range.split('-').map(Number);
@@ -165,7 +195,7 @@ export default function ReportPage() {
     );
   }
 
-  if (!reportData || !currentScores) {
+  if (!reportData || !currentScores) { // currentScores also needed to display the scores section correctly
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] p-4">
         <Card className="p-8 text-center shadow-xl">
@@ -176,7 +206,12 @@ export default function ReportPage() {
       </div>
     );
   }
-
+  
+  const scoresToDisplay = {
+    [ASSESSMENT_TYPES.WHO5]: reportData.who5Score,
+    [ASSESSMENT_TYPES.GAD7]: reportData.gad7Score,
+    [ASSESSMENT_TYPES.PHQ9]: reportData.phq9Score,
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 print:p-2 bg-card print:bg-transparent">
@@ -188,7 +223,6 @@ export default function ReportPage() {
       </div>
       
       <div className="print-container p-6 sm:p-8 border rounded-lg shadow-lg print:shadow-none print:border-none bg-card">
-        {/* Report Header */}
         <header className="mb-8 print:mb-6 text-center print:text-left">
            <div className="flex items-center justify-center print:justify-start gap-2 mb-2">
              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-primary print:h-8 print:w-8">
@@ -201,7 +235,6 @@ export default function ReportPage() {
           <p className="text-lg print:text-base text-muted-foreground">Mental Wellbeing Assessment Report</p>
         </header>
 
-        {/* User and Date Information */}
         <section className="mb-8 print:mb-6">
           <Card className="bg-muted/30 print:bg-transparent print:border-none">
             <CardContent className="p-4 print:p-0 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -225,20 +258,19 @@ export default function ReportPage() {
 
         <Separator className="my-8 print:my-6" />
 
-        {/* Scores Section */}
         <section className="mb-8 print:mb-6">
           <h2 className="text-2xl print:text-xl font-semibold text-foreground mb-4 print:mb-3">Assessment Scores</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 print:gap-4">
             {ASSESSMENT_FLOW.map((type) => {
-              const scoreValue = currentScores[type];
-              const assessmentDetails = ASSESSMENTS_DATA[type as keyof typeof ASSESSMENTS_DATA];
-              if (scoreValue === undefined) return null;
+              const scoreValue = scoresToDisplay[type];
+              const assessmentDetails = ASSESSMENTS_DATA[type];
+              if (scoreValue === undefined) return null; // Skip if score is not in the report
 
               return (
                 <Card key={type} className="shadow-md hover:shadow-lg transition-shadow print:shadow-none print:border">
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-2 mb-1">
-                      {getAssessmentIcon(type)}
+                      {getAssessmentIcon(type as keyof CurrentScores)}
                       <CardTitle className="text-lg print:text-base font-medium">{assessmentDetails.name}</CardTitle>
                     </div>
                   </CardHeader>
@@ -254,7 +286,6 @@ export default function ReportPage() {
         
         <Separator className="my-8 print:my-6" />
 
-        {/* AI Insights Section */}
         <section className="mb-8 print:mb-6">
           <h2 className="text-2xl print:text-xl font-semibold text-foreground mb-4 print:mb-3 flex items-center">
             <Bot className="mr-2 h-6 w-6 text-primary" /> AI-Powered Insights
@@ -284,15 +315,13 @@ export default function ReportPage() {
 
         <Separator className="my-8 print:my-6" />
 
-        {/* Disclaimer */}
         <section>
           <h3 className="text-lg print:text-base font-semibold text-foreground mb-2 print:mb-1">Important Disclaimer</h3>
           <p className="text-xs text-muted-foreground print:text-[10px]">
-            This report is generated based on your self-assessment responses and AI analysis. It is intended for informational purposes only and should not be considered a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition. Never disregard professional medical advice or delay in seeking it because of something you have read in this report. If you are in crisis or think you may have an emergency, call your doctor or 911 immediately.
+            This report is generated based on your self-assessment responses and AI analysis. It is intended for informational purposes only and should not be considered a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition. Never disregard professional medical advice or delay in seeking it because of something you have read in this report. If you are in crisis or think you may have an emergency, call your doctor or 911 immediately. For illustrative purposes, some assessment question sets used in this app may be representative examples and not the official clinical instruments. For actual clinical use, official versions should be consulted.
           </p>
         </section>
 
-        {/* Footer for print */}
         <footer className="mt-12 pt-4 border-t text-center text-xs text-muted-foreground print:block hidden print-footer">
             Report generated by Manasooth on {format(new Date(), 'PPPp')}
         </footer>
@@ -300,4 +329,3 @@ export default function ReportPage() {
     </div>
   );
 }
-

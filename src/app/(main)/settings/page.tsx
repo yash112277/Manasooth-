@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -18,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { Trash2, Settings as SettingsIcon, Bell, Palette, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+// useAuth import removed
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Integrations } from '@/components/integrations/Integrations';
 import { Label } from "@/components/ui/label";
@@ -28,11 +29,10 @@ import { Switch } from "@/components/ui/switch";
 export default function SettingsPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const { user } = useAuth();
+  // const { user } = useAuth(); // user removed
   const [isClient, setIsClient] = useState(false);
   const [isClearDataAlertOpen, setIsClearDataAlertOpen] = useState(false);
 
-  // States for notification preferences - UI only for now
   const [assessmentReminders, setAssessmentReminders] = useState(true);
   const [goalCheckInReminders, setGoalCheckInReminders] = useState(true);
   const [consultationReminders, setConsultationReminders] = useState(true);
@@ -41,7 +41,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setIsClient(true);
-    // In a real app, you'd load these preferences from localStorage or a backend
   }, []);
 
   const handleClearLocalData = () => {
@@ -60,12 +59,20 @@ export default function SettingsPage() {
         localStorage.removeItem(LOCAL_STORAGE_KEYS.USER_GOALS);
         clearedSomething = true;
       }
-      // Any other local storage keys can be added here
+      if (localStorage.getItem(LOCAL_STORAGE_KEYS.MOOD_ENTRIES)) { // Also clear mood entries
+        localStorage.removeItem(LOCAL_STORAGE_KEYS.MOOD_ENTRIES);
+        clearedSomething = true;
+      }
+      if (localStorage.getItem(LOCAL_STORAGE_KEYS.SELECTED_ASSESSMENT_FLOW)) { // Also clear selected flow
+        localStorage.removeItem(LOCAL_STORAGE_KEYS.SELECTED_ASSESSMENT_FLOW);
+        clearedSomething = true;
+      }
+
 
       if (clearedSomething) {
         toast({
           title: "Local Data Cleared",
-          description: "Any locally cached data has been cleared from this browser.",
+          description: "All Manasooth data has been cleared from this browser.",
           className: "bg-primary text-primary-foreground",
         });
       } else {
@@ -105,22 +112,10 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {user && (
-              <Alert variant="default" className="bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700">
-                <AlertTriangle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <AlertTitle className="font-semibold text-blue-700 dark:text-blue-300">Account Data Note</AlertTitle>
-                <AlertDescription className="text-blue-600 dark:text-blue-400/90">
-                  You are logged in. Your primary assessment history and AI insights are linked to your account ({user.email}) and stored securely on our servers.
-                  Clearing local browser data will only remove temporary caches from this specific browser and will not affect your account data.
-                  To permanently delete your account and all associated data, please contact support (feature coming soon).
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* Auth-specific alert removed */}
             <p className="text-sm text-muted-foreground">
-              This action will remove any Manasooth data (like unfinished assessments, completed assessments, progress history, or local settings)
-              stored in this browser. If you are logged in, your account data on our servers will NOT be deleted.
-              If you are not logged in, this will clear all your Manasooth data from this browser.
-              This action cannot be undone for local data.
+              This action will remove all Manasooth data (like unfinished assessments, completed assessments, progress history, goals, mood entries, or local settings)
+              stored in this browser. This action cannot be undone.
             </p>
             <AlertDialog open={isClearDataAlertOpen} onOpenChange={setIsClearDataAlertOpen}>
               <AlertDialogTrigger asChild>
@@ -134,8 +129,7 @@ export default function SettingsPage() {
                   <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will remove all Manasooth data cached in this browser. 
-                    If you are logged in, your main account data will remain safe on our servers.
-                    This action cannot be undone for data in this browser.
+                    This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -228,7 +222,6 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">Theme customization options (e.g., light/dark mode toggle, color accents) will be available in a future update. Stay tuned!</p>
-             {/* Placeholder for theme toggles (e.g., Light/Dark/System) */}
           </CardContent>
         </Card>
         
@@ -243,10 +236,7 @@ export default function SettingsPage() {
             <Integrations />
           </CardContent>
         </Card>
-
-
       </div>
     </>
   );
 }
-

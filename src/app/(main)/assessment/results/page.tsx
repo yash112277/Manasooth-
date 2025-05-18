@@ -11,11 +11,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeAssessment, type AnalyzeAssessmentInput, type AnalyzeAssessmentOutput } from '@/ai/flows/analyze-assessment';
-import { ASSESSMENT_TYPES, LOCAL_STORAGE_KEYS, ASSESSMENT_NAMES } from '@/lib/constants';
+import { ASSESSMENT_TYPES, LOCAL_STORAGE_KEYS, ASSESSMENT_NAMES, type AssessmentTypeValue } from '@/lib/constants';
 import type { CompletedAssessmentSet, CurrentScores, UserGoal } from '@/lib/types';
 import { ASSESSMENTS_DATA } from '@/lib/assessment-questions';
-import { Bot, FileText, RefreshCw, Lightbulb, MessageSquare, Video, LogIn, AlertTriangle, Download, TrendingUp, Smile, Brain, HeartPulse } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Bot, FileText, RefreshCw, Lightbulb, MessageSquare, Video, AlertTriangle, Download, TrendingUp, Smile, Brain, HeartPulse } from 'lucide-react';
+// useAuth import removed as login features are gone
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,9 +29,16 @@ import {
 import { useLanguage, type SupportedLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
-const CHART_COLORS_STROKE = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))'];
-const CHART_COLORS_FILL = ['hsla(var(--chart-1), 0.7)', 'hsla(var(--chart-2), 0.7)', 'hsla(var(--chart-3), 0.7)'];
-
+const CHART_COLORS_STROKE: Record<AssessmentTypeValue, string> = {
+  [ASSESSMENT_TYPES.WHO5]: 'hsl(var(--chart-1))',
+  [ASSESSMENT_TYPES.GAD7]: 'hsl(var(--chart-2))',
+  [ASSESSMENT_TYPES.PHQ9]: 'hsl(var(--chart-3))',
+};
+const CHART_COLORS_FILL: Record<AssessmentTypeValue, string> = {
+  [ASSESSMENT_TYPES.WHO5]: 'hsla(var(--chart-1), 0.7)',
+  [ASSESSMENT_TYPES.GAD7]: 'hsla(var(--chart-2), 0.7)',
+  [ASSESSMENT_TYPES.PHQ9]: 'hsla(var(--chart-3), 0.7)',
+};
 
 const getAssessmentIcon = (type: keyof CurrentScores) => {
   switch (type) {
@@ -46,7 +53,6 @@ const getAssessmentIcon = (type: keyof CurrentScores) => {
   }
 };
 
-// Component for individual score display, similar to HomePage's ScoreCard
 function ResultScoreCard({ type, score }: { type: keyof CurrentScores, score: number }) {
   const { language, translate } = useLanguage();
 
@@ -55,7 +61,7 @@ function ResultScoreCard({ type, score }: { type: keyof CurrentScores, score: nu
     [ASSESSMENT_TYPES.GAD7] : {en: ASSESSMENT_NAMES.gad7, hi: "GAD-7 चिंता मूल्यांकन"},
     [ASSESSMENT_TYPES.PHQ9] : {en: ASSESSMENT_NAMES.phq9, hi: "PHQ-9 अवसाद स्क्रीनिंग"},
   }
-  const translatedName = translate(nameTranslations[type] || {en: ASSESSMENT_NAMES[type], hi: ASSESSMENT_NAMES[type]});
+  const translatedName = translate(nameTranslations[type] || {en: ASSESSMENT_NAMES[type as AssessmentTypeValue], hi: ASSESSMENT_NAMES[type as AssessmentTypeValue]});
 
   const interpretation = getScoreInterpretation(type, score);
 
@@ -78,7 +84,7 @@ function ResultScoreCard({ type, score }: { type: keyof CurrentScores, score: nu
 
 const getScoreInterpretation = (type: keyof CurrentScores, score?: number) => {
     if (score === undefined) return "Not taken";
-    const assessmentData = ASSESSMENTS_DATA[type as keyof typeof ASSESSMENTS_DATA];
+    const assessmentData = ASSESSMENTS_DATA[type as AssessmentTypeValue];
     if (!assessmentData?.interpretation) return `Score: ${score}`;
 
     for (const range in assessmentData.interpretation) {
@@ -93,11 +99,11 @@ const getScoreInterpretation = (type: keyof CurrentScores, score?: number) => {
 export default function ResultsPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth();
+  // const { user, loading: authLoading } = useAuth(); // Auth features removed
   const { translate, language } = useLanguage();
   const [scores, setScores] = useState<CurrentScores | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AnalyzeAssessmentOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // For initial score loading
+  const [isLoading, setIsLoading] = useState(true); 
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [showConsultationDialog, setShowConsultationDialog] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -162,7 +168,7 @@ export default function ResultsPage() {
   }, [isClient, router, toast]);
 
   useEffect(() => {
-    if (!isClient || !scores || aiAnalysis) return; // Don't re-run if AI analysis already exists
+    if (!isClient || !scores || aiAnalysis) return; 
 
     let activeGoalsForAI: AnalyzeAssessmentInput['activeGoals'] = [];
     try {
@@ -193,7 +199,7 @@ export default function ResultsPage() {
   }, [isClient, scores, handleAiAnalysis, aiAnalysis]);
   
 
-  if (!isClient || isLoading || authLoading) {
+  if (!isClient || isLoading /* || authLoading */) { // authLoading removed
     return (
       <div className="space-y-8 p-4 md:p-6 lg:p-8">
         <Skeleton className="h-12 w-3/4 sm:w-1/2" />
@@ -224,14 +230,17 @@ export default function ResultsPage() {
   }
 
   const chartData = Object.entries(scores)
-    .filter(([key, value]) => value !== undefined && ASSESSMENTS_DATA[key as keyof CurrentScores])
-    .map(([key, value], index) => ({
-      name: ASSESSMENT_NAMES[key as keyof CurrentScores] || key,
-      score: value,
-      fullMark: key === ASSESSMENT_TYPES.WHO5 ? 100 : (key === ASSESSMENT_TYPES.GAD7 ? 21 : 27),
-      fill: CHART_COLORS_FILL[index % CHART_COLORS_FILL.length],
-      stroke: CHART_COLORS_STROKE[index % CHART_COLORS_STROKE.length],
-    }));
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => {
+      const assessmentKey = key as AssessmentTypeValue;
+      return {
+        name: ASSESSMENT_NAMES[assessmentKey] || assessmentKey,
+        score: value,
+        fullMark: assessmentKey === ASSESSMENT_TYPES.WHO5 ? 100 : (assessmentKey === ASSESSMENT_TYPES.GAD7 ? 21 : 27),
+        fill: CHART_COLORS_FILL[assessmentKey] || CHART_COLORS_FILL[ASSESSMENT_TYPES.WHO5], 
+        stroke: CHART_COLORS_STROKE[assessmentKey] || CHART_COLORS_STROKE[ASSESSMENT_TYPES.WHO5], 
+      };
+    });
 
 
   return (
@@ -257,15 +266,18 @@ export default function ResultsPage() {
               <BarChart data={chartData} layout="horizontal" margin={{ top: 5, right: 20, left: 0, bottom: 50 }}>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.5} />
                 <XAxis dataKey="name" angle={-25} textAnchor="end" height={60} interval={0} tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}} />
-                <YAxis tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}} />
+                <YAxis type="number" domain={[0, 'dataMax + 5']} tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
                   labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
-                  formatter={(value, name, props) => [
+                  formatter={(value, name, props) => {
+                    const originalName = Object.keys(ASSESSMENT_NAMES).find(key => ASSESSMENT_NAMES[key as AssessmentTypeValue] === props.payload.name) as AssessmentTypeValue | undefined;
+                    if (!originalName) return [`${value} / ${props.payload.fullMark}`, name];
+                    return [
                       `${value} / ${props.payload.fullMark}`, 
-                      `${getScoreInterpretation(props.payload.name as keyof CurrentScores, Number(value)).split(' (Score:')[0]}`
-                    ]
-                  }
+                      `${getScoreInterpretation(originalName, Number(value)).split(' (Score:')[0]}`
+                    ];
+                  }}
                 />
                 <Legend wrapperStyle={{paddingTop: '20px'}}/>
                 <Bar dataKey="score" name={translate({en: "Your Score", hi: "आपका स्कोर"})} barSize={40} radius={[4, 4, 0, 0]}>
@@ -393,13 +405,7 @@ export default function ResultsPage() {
       </AlertDialog>
 
       <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-10 flex-wrap">
-        {!authLoading && !user && (
-            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg transition-colors transform hover:scale-105 py-3">
-                <Link href="/auth/login?redirect=/assessment/results">
-                    <LogIn className="mr-2 h-5 w-5" /> {translate({en: "Login to Save Results", hi: "परिणाम सहेजने के लिए लॉगिन करें"})}
-                </Link>
-            </Button>
-        )}
+        {/* Login button removed */}
         <Button size="lg" onClick={() => router.push('/progress')} className="hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg transform hover:scale-105 py-3">
             {translate({en: "View Progress", hi: "प्रगति देखें"})}
         </Button>

@@ -26,5 +26,5 @@ export const LOCAL_STORAGE_KEYS = {
   PROGRESS_DATA: 'manasooth_progress_data',
   USER_GOALS: 'manasooth_user_goals',
   MOOD_ENTRIES: 'manasooth_mood_entries',
-  SELECTED_ASSESSMENT_FLOW: 'manasooth_selected_assessment_flow', // New key
+  SELECTED_ASSESSMENT_FLOW: 'manasooth_selected_assessment_flow',
 } as const;

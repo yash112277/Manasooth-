@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,8 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Bot, User, Send, Loader2, MessageCircleQuestion } from 'lucide-react';
 import Link from 'next/link';
 import { ASSESSMENTS_DATA } from '@/lib/assessment-questions';
-import { ASSESSMENT_TYPES, ASSESSMENT_NAMES, type AssessmentTypeValue } from '@/lib/constants';
-import type { Question, QuestionOption } from '@/lib/types';
+import { ASSESSMENT_TYPES, ASSESSMENT_NAMES, type AssessmentTypeValue, LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import type { Question, CurrentScores } from '@/lib/types';
 
 interface Message {
   id: string;
@@ -24,22 +24,20 @@ interface Message {
 type ConversationalStage =
   | { type: 'awaiting_assessment_choice' }
   | { type: 'assessment_question'; assessmentType: AssessmentTypeValue; questionIndex: number }
-  | { type: 'conclusion' };
+  | { type: 'conclusion'; assessmentType: AssessmentTypeValue };
 
-const assessmentChoicesMap: Record<string, AssessmentTypeValue | undefined> = {
+const coreAssessmentChoicesMap: Record<string, AssessmentTypeValue | undefined> = {
   "who-5": ASSESSMENT_TYPES.WHO5, "who5": ASSESSMENT_TYPES.WHO5, "wellbeing": ASSESSMENT_TYPES.WHO5, "well being": ASSESSMENT_TYPES.WHO5,
   "gad-7": ASSESSMENT_TYPES.GAD7, "gad7": ASSESSMENT_TYPES.GAD7, "anxiety": ASSESSMENT_TYPES.GAD7,
   "phq-9": ASSESSMENT_TYPES.PHQ9, "phq9": ASSESSMENT_TYPES.PHQ9, "depression": ASSESSMENT_TYPES.PHQ9,
 };
-
 
 export default function AiConversationalAssessmentPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentStage, setCurrentStage] = useState<ConversationalStage>({ type: 'awaiting_assessment_choice' });
-  // Mock scores - in a real app, these would be collected and processed
-  const [mockScores, setMockScores] = useState<Record<string, number[]>>({});
+  const [currentScores, setCurrentScores] = useState<Partial<Record<AssessmentTypeValue, number[]>>>({});
 
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -64,21 +62,23 @@ export default function AiConversationalAssessmentPage() {
         timestamp: new Date(),
       }
     ]);
+    setCurrentScores({}); // Reset scores when component mounts
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.CURRENT_ASSESSMENT_SCORES); // Clear any old single assessment scores
   }, []);
 
   const formatQuestionWithOptions = (question: Question): string => {
     const optionsString = question.options.map(opt => `${opt.value}: ${opt.text}`).join('\n');
-    return `${question.text}\n\nOptions (reply with the number corresponding to your choice):\n${optionsString}`;
+    return `${question.text}\n\nPlease reply with the number corresponding to your choice:\n${optionsString}`;
   };
 
-  const getMockAIResponse = (userInput: string): string => {
+  const getMockAIResponse = useCallback((userInput: string): string => {
     let responseText = "";
     let nextStage: ConversationalStage = currentStage;
 
     switch (currentStage.type) {
       case "awaiting_assessment_choice":
-        const chosenKey = userInput.trim().toLowerCase().replace(/\s+/g, '');
-        const chosenAssessmentType = assessmentChoicesMap[chosenKey];
+        const chosenKey = userInput.trim().toLowerCase().replace(/[-\s_]/g, '');
+        const chosenAssessmentType = coreAssessmentChoicesMap[chosenKey];
         
         if (chosenAssessmentType && ASSESSMENTS_DATA[chosenAssessmentType]) {
           const assessmentData = ASSESSMENTS_DATA[chosenAssessmentType];
@@ -86,9 +86,9 @@ export default function AiConversationalAssessmentPage() {
           const firstQuestion = assessmentData.questions[0];
           responseText += `\n\nQuestion 1: ${formatQuestionWithOptions(firstQuestion)}`;
           nextStage = { type: 'assessment_question', assessmentType: chosenAssessmentType, questionIndex: 0 };
+          setCurrentScores(prev => ({ ...prev, [chosenAssessmentType]: [] })); // Initialize scores for this assessment
         } else {
-          responseText = "I'm sorry, I didn't recognize that assessment. Please choose from WHO-5, GAD-7, or PHQ-9. For example, type 'GAD-7'.";
-          // nextStage remains 'awaiting_assessment_choice'
+          responseText = "I'm sorry, I didn't recognize that assessment. Please choose from WHO-5, GAD-7, or PHQ-9 by typing its name or key (e.g., 'GAD-7' or 'anxiety').";
         }
         break;
 
@@ -101,11 +101,9 @@ export default function AiConversationalAssessmentPage() {
         const isValidOption = currentQuestion.options.some(opt => opt.value === userAnswerNumeric);
 
         if (isNaN(userAnswerNumeric) || !isValidOption) {
-          responseText = `I'm sorry, I didn't quite catch that. Please select one of the numbered options for the question. Let's try again:\n\nQuestion ${questionIndex + 1}: ${formatQuestionWithOptions(currentQuestion)}`;
-          // nextStage remains currentStage, re-prompting the same question
+          responseText = `I'm sorry, that doesn't seem to be a valid option number. Please select one of the numbered options for the question. Let's try again:\n\nQuestion ${questionIndex + 1}: ${formatQuestionWithOptions(currentQuestion)}`;
         } else {
-          // Valid input, proceed (mock storing score)
-          setMockScores(prev => ({
+          setCurrentScores(prev => ({
             ...prev,
             [assessmentType]: [...(prev[assessmentType] || []), userAnswerNumeric]
           }));
@@ -116,22 +114,35 @@ export default function AiConversationalAssessmentPage() {
             responseText = `Okay. Question ${nextQuestionIndex + 1} for ${ASSESSMENT_NAMES[assessmentType]}:\n${formatQuestionWithOptions(nextQ)}`;
             nextStage = { type: 'assessment_question', assessmentType, questionIndex: nextQuestionIndex };
           } else {
-            responseText = `Excellent! You've completed the ${ASSESSMENT_NAMES[assessmentType]}. Your results will be processed. (In a real app, you'd be directed to the results page now or given a summary, and your actual scores would be saved). Thank you for your time!`;
-            nextStage = { type: 'conclusion' };
+            // Calculate final score for the completed assessment
+            const scoresForThisAssessment = currentScores[assessmentType] || [];
+            let finalScore = scoresForThisAssessment.reduce((sum, val) => sum + val, 0);
+            if (assessmentType === ASSESSMENT_TYPES.WHO5) {
+              finalScore *= 4;
+            }
+            
+            // Store this single assessment's score in localStorage
+            // This will be overwritten if another assessment is taken this way
+            const allFinalScores: Partial<CurrentScores> = {};
+            allFinalScores[assessmentType as keyof CurrentScores] = finalScore;
+            localStorage.setItem(LOCAL_STORAGE_KEYS.CURRENT_ASSESSMENT_SCORES, JSON.stringify(allFinalScores));
+            
+            responseText = `Excellent! You've completed the ${ASSESSMENT_NAMES[assessmentType]}. Your score for this assessment is ${finalScore}.\n\nYou can now view your results or explore other features.`;
+            nextStage = { type: 'conclusion', assessmentType: assessmentType };
           }
         }
         break;
 
       case "conclusion":
-        responseText = "You've already completed this assessment session. If you'd like to take another assessment, you can start a new session from the assessment page. For now, you can view your results (if this session were real) or explore other features.";
+        responseText = `You've completed the ${ASSESSMENT_NAMES[currentStage.assessmentType]} assessment. You can use the button below to see your results, or start a new session if you'd like to take another assessment.`;
         break;
     }
 
     setCurrentStage(nextStage);
     return responseText;
-  };
+  }, [currentStage, currentScores]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (input.trim() === '') return;
 
     const userMessage: Message = {
@@ -170,10 +181,10 @@ export default function AiConversationalAssessmentPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [input, getMockAIResponse, toast]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="h-full flex flex-col">
       <Card className="flex-1 flex flex-col shadow-2xl max-w-3xl mx-auto w-full">
         <CardHeader className="border-b">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
@@ -244,11 +255,21 @@ export default function AiConversationalAssessmentPage() {
                {currentStage.type === "conclusion" && messages.length > 0 && messages[messages.length -1].sender === 'ai' && !isLoading && (
                 <div className="text-center pt-6">
                     <Button asChild variant="outline">
-                        <Link href="/assessment/results">View My Results (Simulated)</Link>
+                        <Link href="/assessment/results">View My Results</Link>
                     </Button>
-                    <p className="text-xs text-muted-foreground mt-2">
-                        (Note: This conversational assessment is currently a simulation. Actual results processing, scoring, and Genkit integration are pending.)
-                    </p>
+                     <Button variant="link" onClick={() => {
+                        setCurrentStage({type: 'awaiting_assessment_choice'});
+                        setMessages(prev => [...prev, {
+                            id: Date.now().toString(),
+                            text: "Okay! Which assessment would you like to take now: WHO-5, GAD-7, or PHQ-9?",
+                            sender: 'ai',
+                            timestamp: new Date(),
+                        }]);
+                        setCurrentScores({}); // Reset scores for a new assessment
+                        localStorage.removeItem(LOCAL_STORAGE_KEYS.CURRENT_ASSESSMENT_SCORES);
+                     }} className="block mx-auto mt-2">
+                        Or, take another assessment
+                    </Button>
                 </div>
               )}
             </div>
@@ -258,7 +279,7 @@ export default function AiConversationalAssessmentPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (currentStage.type !== "conclusion") {
+              if (currentStage.type !== "conclusion" || (currentStage.type === "conclusion" && input.trim() !== '')) { // Allow sending if user types after conclusion
                 handleSendMessage();
               }
             }}
@@ -266,17 +287,17 @@ export default function AiConversationalAssessmentPage() {
           >
             <Input
               type="text"
-              placeholder={currentStage.type === "conclusion" ? "Assessment complete. Explore other options." : 
+              placeholder={currentStage.type === "conclusion" ? "Session ended. Type to start over or view results." : 
                              currentStage.type === "awaiting_assessment_choice" ? "Type assessment name (e.g. WHO-5)..." :
                              "Type your response (e.g., a number for your choice)..."
                            }
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="flex-1 text-base py-3 px-4 h-12"
-              disabled={isLoading || currentStage.type === "conclusion"}
+              disabled={isLoading}
               aria-label="Chat message input"
             />
-            <Button type="submit" size="icon" className="h-12 w-12 rounded-full" disabled={isLoading || input.trim() === '' || currentStage.type === "conclusion"}>
+            <Button type="submit" size="icon" className="h-12 w-12 rounded-full" disabled={isLoading || input.trim() === '' && currentStage.type !== 'conclusion'}>
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
               <span className="sr-only">Send</span>
             </Button>

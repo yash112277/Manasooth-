@@ -45,7 +45,6 @@ export default function MoodTrackerPage() {
     const storedEntries = localStorage.getItem(LOCAL_STORAGE_KEYS.MOOD_ENTRIES);
     if (storedEntries) {
       const parsedEntries = JSON.parse(storedEntries) as MoodEntry[];
-      // Sort by date descending (most recent first)
       parsedEntries.sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
       setMoodEntries(parsedEntries);
     }
@@ -53,7 +52,6 @@ export default function MoodTrackerPage() {
 
   const saveMoodEntries = (updatedEntries: MoodEntry[]) => {
     localStorage.setItem(LOCAL_STORAGE_KEYS.MOOD_ENTRIES, JSON.stringify(updatedEntries));
-    // Sort by date descending for display
     updatedEntries.sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
     setMoodEntries(updatedEntries);
   };
@@ -74,11 +72,11 @@ export default function MoodTrackerPage() {
   
   const getMoodEmoji = (moodLevel: MoodLevelValue): string => {
     switch (moodLevel) {
-      case 5: return "😄"; // Great
-      case 4: return "😊"; // Good
-      case 3: return "😐"; // Okay
-      case 2: return "😟"; // Bad
-      case 1: return "😢"; // Awful
+      case 5: return "😄"; 
+      case 4: return "😊"; 
+      case 3: return "😐"; 
+      case 2: return "😟"; 
+      case 1: return "😢"; 
       default: return "🤔";
     }
   };
@@ -123,7 +121,7 @@ export default function MoodTrackerPage() {
                     width={300}
                     height={200}
                     className="object-cover w-full h-full"
-                    data-ai-hint="journal mood"
+                    data-ai-hint="journal reflection"
                 />
             </div>
           </CardContent>

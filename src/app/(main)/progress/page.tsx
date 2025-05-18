@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
-const CHART_COLORS = {
+const CHART_COLORS: Record<AssessmentTypeValue, string> = {
   [ASSESSMENT_TYPES.WHO5]: 'hsl(var(--chart-1))',
   [ASSESSMENT_TYPES.GAD7]: 'hsl(var(--chart-2))',
   [ASSESSMENT_TYPES.PHQ9]: 'hsl(var(--chart-3))',
@@ -38,21 +38,31 @@ export default function ProgressPage() {
 
     const storedData = localStorage.getItem(LOCAL_STORAGE_KEYS.PROGRESS_DATA);
     if (storedData) {
-      const parsedData = JSON.parse(storedData) as CompletedAssessmentSet[];
-      parsedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      setProgressData(parsedData);
-      updateGoalsWithLatestScores(parsedData);
+      try {
+        const parsedData = JSON.parse(storedData) as CompletedAssessmentSet[];
+        parsedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        setProgressData(parsedData);
+        updateGoalsWithLatestScores(parsedData);
+      } catch (e) {
+        console.error("Error parsing progress data:", e);
+        toast({ title: "Error loading progress", description: "Could not parse progress data.", variant: "destructive"});
+        loadGoals(); // Still try to load goals
+      }
     } else {
-       // If no progress data, still try to load goals to display them.
       loadGoals();
     }
     setIsLoading(false);
-  }, [isClient]);
+  }, [isClient, toast]); // Added toast dependency
 
   const loadGoals = () => {
     const storedGoals = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_GOALS);
     if (storedGoals) {
-      setUserGoals(JSON.parse(storedGoals) as UserGoal[]);
+      try {
+        setUserGoals(JSON.parse(storedGoals) as UserGoal[]);
+      } catch (e) {
+        console.error("Error parsing user goals:", e);
+        toast({ title: "Error loading goals", description: "Could not parse goal data.", variant: "destructive"});
+      }
     }
   };
 
@@ -64,11 +74,18 @@ export default function ProgressPage() {
   const updateGoalsWithLatestScores = (latestProgressData: CompletedAssessmentSet[]) => {
     const storedGoalsString = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_GOALS);
     if (!storedGoalsString) {
-      setUserGoals([]); // Ensure userGoals is initialized if none are stored
+      setUserGoals([]); 
       return;
     }
-
-    let currentGoals = JSON.parse(storedGoalsString) as UserGoal[];
+    let currentGoals: UserGoal[];
+    try {
+      currentGoals = JSON.parse(storedGoalsString) as UserGoal[];
+    } catch(e) {
+      console.error("Error parsing goals for update:", e);
+      toast({ title: "Error updating goals", description: "Could not parse goal data for updates.", variant: "destructive"});
+      return;
+    }
+    
     let goalsWereUpdated = false;
 
     if (latestProgressData.length > 0) {
@@ -81,27 +98,25 @@ export default function ProgressPage() {
       };
 
       currentGoals = currentGoals.map(goal => {
-        if (goal.status !== 'active') return goal; // Only update active goals
+        if (goal.status !== 'active') return goal; 
 
         const latestScoreForGoalType = scoreMap[goal.assessmentType];
-        if (latestScoreForGoalType === undefined) return goal; // No new score for this goal's type
+        if (latestScoreForGoalType === undefined) return goal; 
 
         let updatedGoal = { ...goal, currentScore: latestScoreForGoalType };
         let achieved = false;
 
         if (goal.goalDefinitionType === GOAL_DEFINITION_TYPES.REACH_SPECIFIC_SCORE) {
-          if (goal.assessmentType === ASSESSMENT_TYPES.WHO5) { // Higher is better
+          if (goal.assessmentType === ASSESSMENT_TYPES.WHO5) { 
             achieved = latestScoreForGoalType >= goal.targetValue;
-          } else { // Lower is better
+          } else { 
             achieved = latestScoreForGoalType <= goal.targetValue;
           }
         } else if (goal.goalDefinitionType === GOAL_DEFINITION_TYPES.IMPROVE_CURRENT_SCORE) {
           const change = latestScoreForGoalType - goal.startScore;
-          if (goal.assessmentType === ASSESSMENT_TYPES.WHO5) { // Expect positive change (increase)
-            // targetValue is positive points to increase by
+          if (goal.assessmentType === ASSESSMENT_TYPES.WHO5) { 
             achieved = change >= goal.targetValue;
-          } else { // Expect negative change (decrease)
-            // targetValue is positive points to decrease by (e.g. improve by 5 means score should go down by 5)
+          } else { 
             achieved = change <= -goal.targetValue;
           }
         }
@@ -121,7 +136,7 @@ export default function ProgressPage() {
     if (goalsWereUpdated) {
       saveGoals(currentGoals);
     } else {
-      setUserGoals(currentGoals); // Set state even if no updates to ensure consistency
+      setUserGoals(currentGoals); 
     }
   };
 
@@ -181,12 +196,13 @@ export default function ProgressPage() {
                 <Tooltip />
                 <Legend />
                 {Object.values(ASSESSMENT_TYPES).map(type => (
+                  progressData.some(d => d[`${type}Score` as keyof CompletedAssessmentSet] !== undefined) && // Only render line if data exists for this type
                   <Line
                     key={type}
                     type="monotone"
                     dataKey={`${type}Score`}
-                    name={ASSESSMENT_NAMES[type as keyof typeof ASSESSMENT_NAMES]}
-                    stroke={CHART_COLORS[type as keyof typeof CHART_COLORS]}
+                    name={ASSESSMENT_NAMES[type as AssessmentTypeValue]}
+                    stroke={CHART_COLORS[type as AssessmentTypeValue]}
                     strokeWidth={2}
                     dot={{ r: 4 }}
                     activeDot={{ r: 6 }}
@@ -276,4 +292,3 @@ export default function ProgressPage() {
     </div>
   );
 }
-

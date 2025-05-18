@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +10,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface Helpline {
   id: string;
   name: string;
-  contact: string; // Can include multiple numbers, WhatsApp info, or text info
+  contact: string; 
   description: string;
   icon: React.ElementType;
   availability?: string;
@@ -220,13 +221,14 @@ export default function LocalSupportPage() {
         </CardContent>
       </Card>
       
-      <div className="rounded-lg overflow-hidden shadow-lg aspect-video my-8" data-ai-hint="support community helpline">
+      <div className="rounded-lg overflow-hidden shadow-lg aspect-video my-8">
         <Image
-          src="https://picsum.photos/800/450"
+          src="https://placehold.co/600x338.png"
           alt={translate({en: "Image representing a supportive community or helpline services", hi: "एक सहायक समुदाय या हेल्पलाइन सेवाओं का प्रतिनिधित्व करने वाली छवि"})}
-          width={800}
-          height={450}
+          width={600}
+          height={338}
           className="object-cover w-full h-full"
+          data-ai-hint="support network graphic"
         />
       </div>
 
@@ -286,14 +288,14 @@ function HelplineCard({ helpline }: HelplineCardProps) {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <IconComponent className="h-8 w-8 text-primary flex-shrink-0 mt-1" />
-            <CardTitle className="text-xl">{helpline.name}</CardTitle> {/* Name is usually proper, not translated dynamically here */}
+            <CardTitle className="text-xl">{helpline.name}</CardTitle> 
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-2 pl-14"> {/* Indent content to align with title text */}
+      <CardContent className="space-y-2 pl-14"> 
         <p className="text-2xl font-bold text-primary">{helpline.contact}</p>
         <p className="text-sm text-muted-foreground">
-            {translate({en: helpline.description, hi: helpline.description})} {/* Assume description might need translation if content changes */}
+            {translate({en: helpline.description, hi: helpline.description})} 
         </p>
         {helpline.availability && (
             <p className="text-xs text-muted-foreground pt-1">
@@ -309,4 +311,3 @@ function HelplineCard({ helpline }: HelplineCardProps) {
     </Card>
   );
 }
-

@@ -2,20 +2,14 @@
 "use client";
 
 import type { ReactNode, Dispatch, SetStateAction } from 'react';
-import { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  onAuthStateChanged, 
-  type User, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut as firebaseSignOut 
-} from 'firebase/auth';
-import { auth, firebaseInitializedSuccessfully } from '@/lib/firebase'; 
-import { useRouter } from 'next/navigation';
+import { createContext, useContext, useState } from 'react';
+// Firebase User type might still be imported if other parts of the app expect it,
+// but actual Firebase Auth instance won't be used.
+import type { User } from 'firebase/auth'; 
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
+  user: User | null; // Will always be null
+  loading: boolean; // Will always be false
   error: string | null;
   setError: Dispatch<SetStateAction<string | null>>;
   signUp: (email: string, pass: string) => Promise<User | null>;
@@ -26,94 +20,36 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
-  useEffect(() => {
-    if (!firebaseInitializedSuccessfully) {
-      console.error("AuthContext: Firebase was not initialized successfully. Auth operations will not work.");
-      setError("Authentication service is unavailable due to Firebase initialization issues. Please ensure your .env file is configured correctly.");
-      setLoading(false);
-      return;
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    }, (authError) => {
-      console.error("AuthContext: Error in onAuthStateChanged subscription:", authError);
-      setError("Error listening to authentication state: " + authError.message);
-      setLoading(false);
-    });
-    
-    return () => unsubscribe();
-  }, []); 
-
+  // Mock implementations as auth is removed
   const signUp = async (email: string, pass: string): Promise<User | null> => {
-    if (!firebaseInitializedSuccessfully) {
-      setError("Authentication service is unavailable.");
-      setLoading(false);
-      return null;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-      setUser(userCredential.user);
-      setLoading(false);
-      return userCredential.user;
-    } catch (e: any) {
-      setError(e.message);
-      setLoading(false);
-      return null;
-    }
+    setError("Signup feature is currently disabled.");
+    console.warn("Attempted to call signUp, but feature is disabled.");
+    return null;
   };
 
   const signIn = async (email: string, pass: string): Promise<User | null> => {
-    if (!firebaseInitializedSuccessfully) {
-      setError("Authentication service is unavailable.");
-      setLoading(false);
-      return null;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-      setUser(userCredential.user);
-      setLoading(false);
-      return userCredential.user;
-    } catch (e: any) {
-      setError(e.message);
-      setLoading(false);
-      return null;
-    }
+    setError("Login feature is currently disabled.");
+    console.warn("Attempted to call signIn, but feature is disabled.");
+    return null;
   };
 
   const signOut = async () => {
-    if (!firebaseInitializedSuccessfully) {
-      setError("Authentication service is unavailable.");
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      await firebaseSignOut(auth);
-      setUser(null);
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-      if (typeof window !== 'undefined' && window.location.pathname !== '/auth/login') {
-        router.push('/auth/login');
-      }
-    }
+    console.warn("Attempted to call signOut, but feature is disabled.");
+    // No user state to change, no router push needed.
   };
   
   return (
-    <AuthContext.Provider value={{ user, loading, error, setError, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ 
+      user: null, // User is always null
+      loading: false, // Loading is always false
+      error, 
+      setError, 
+      signUp, 
+      signIn, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -122,7 +58,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    // This provider will no longer be in AppProviders.
+    // Components calling useAuth should be updated or this hook should return default non-authed state.
+    // For now, to prevent immediate errors in existing components, we'll return a safe default.
+    // Ideally, refactor components to not call useAuth or handle its absence.
+     return {
+      user: null,
+      loading: false,
+      error: null,
+      setError: () => {},
+      signUp: async () => null,
+      signIn: async () => null,
+      signOut: async () => {},
+    } as AuthContextType;
+    // A more robust solution would be to remove useAuth calls from components.
+    // throw new Error('useAuth must be used within an AuthProvider - OR - AuthProvider has been removed.');
   }
   return context;
 }

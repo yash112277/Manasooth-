@@ -1,240 +1,204 @@
 
 # Manasooth - Your Mental Wellness Companion
 
-Manasooth ("मनः सूथ" - where "मनः" means mind and "सूथ" implies soothing or comfort) is a web application designed to be a compassionate and insightful partner in an individual's journey towards better mental wellbeing. It offers a comprehensive suite of tools, including standardized mental health assessments, AI-powered analysis and recommendations, progress tracking capabilities, an empathetic AI chatbot, a (simulated) professional consultation booking system, wellbeing goal setting, mood tracking, and local support resources. The platform is built with user privacy and accessibility in mind, catering to both anonymous users and those who wish to create an account for a more personalized and persistent experience.
+Manasooth ("मनः सूथ" - where "मनः" means mind and "सूथ" implies soothing or comfort) is a comprehensive web application designed to be a compassionate and insightful partner in an individual's journey towards better mental wellbeing. It offers a rich suite of tools including core mental health assessments (WHO-5, GAD-7, PHQ-9), AI-powered analysis and personalized recommendations, robust progress tracking capabilities, an empathetic AI chatbot for emotional expression, a simulated professional consultation booking system with calendar integration, wellbeing goal setting and tracking, a daily mood tracker, and curated local support resources with a focus on India. The platform is meticulously built with user privacy and accessibility at its core, with all data stored locally in the user's browser. **User signup and login functionality have been removed to enhance privacy and simplify the user experience.**
 
 ## Table of Contents
 
 - [Overview](#overview)
   - [Target Audience](#target-audience)
   - [Core Philosophy](#core-philosophy)
-- [Key Features](#key-features)
+- [Key Features Detailed](#key-features-detailed)
 - [Technology Stack](#technology-stack)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Environment Variables](#environment-variables)
   - [Installation and Running](#installation-and-running)
-- [Firebase Setup](#firebase-setup)
-  - [Creating a Firebase Project](#creating-a-firebase-project)
-  - [Enabling Services](#enabling-services)
-  - [Security Rules](#security-rules)
-- [Genkit AI Flows](#genkit-ai-flows)
+- [Genkit AI Flows Explained](#genkit-ai-flows-explained)
   - [`analyzeAssessmentFlow`](#analyzeassessmentflow)
   - [`aiChatbotFlow`](#aichatbotflow)
   - [`bookConsultationFlow`](#bookconsultationflow)
-- [Future Improvements & Roadmap](#future-improvements--roadmap)
+- [Future Improvements & Detailed Roadmap](#future-improvements--detailed-roadmap)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Overview
 
-Manasooth aims to empower users in India and beyond to proactively manage their mental health. It provides a secure and non-judgmental space for self-reflection, learning, and seeking support. The application emphasizes early awareness and personalized guidance, leveraging technology to make mental wellness tools more accessible with a focus on the Indian context.
+Manasooth aims to empower individuals, primarily focusing on the Indian context but applicable globally, to proactively manage their mental health and enhance their overall wellbeing. It provides a secure, non-judgmental, and user-friendly digital space for self-reflection, learning, accessing supportive tools, and seeking guidance. The application emphasizes early awareness of mental health states through validated assessments and offers personalized, AI-driven guidance to foster resilience and encourage timely help-seeking when appropriate. **All user data is stored locally in the browser, ensuring maximum privacy as no server-side accounts are required.**
 
 ### Target Audience
 
-- Individuals seeking to understand and improve their mental wellbeing.
-- Users curious about their mental state through standardized assessments.
-- People looking for a safe space to express thoughts and receive supportive feedback.
-- Those interested in tracking their mental health trends over time.
-- Individuals who might benefit from initial guidance before seeking professional help.
-- Users who prefer interacting with an AI for assessments or support.
+Manasooth is designed for:
+- Individuals seeking to understand and improve their mental wellbeing proactively.
+- Users curious about their mental state who wish to take standardized assessments in a private setting.
+- People looking for a safe, empathetic space to express thoughts and feelings, and receive supportive, non-clinical feedback.
+- Those interested in tracking their mental health trends, mood fluctuations, and goal progress over time (all data stored locally).
+- Individuals who might benefit from initial guidance and self-help strategies before or alongside seeking professional help.
+- Users who prefer interacting with an AI for initial assessments or for ongoing supportive dialogue.
+- Anyone in India looking for a curated list of verified mental health support helplines and resources.
 
 ### Core Philosophy
 
-- **Accessibility:** Providing mental wellness tools to a broad audience, with multi-language support (English, Hindi).
-- **Empowerment:** Giving users insights and actionable steps to take control of their mental health.
-- **Privacy:** Ensuring user data is handled securely and offering anonymous usage options.
-- **Personalization:** Tailoring feedback, recommendations, and experiences to individual needs.
-- **Support:** Offering a compassionate and understanding digital environment.
-- **Holistic View:** Providing a diverse range of assessments to cover various aspects of mental health.
+Manasooth is built upon the following guiding principles:
+- **Accessibility & Inclusivity:** Providing mental wellness tools to a broad audience, including multi-language support (English, Hindi) and adherence to web accessibility standards (WCAG).
+- **Empowerment & Agency:** Giving users actionable insights and evidence-based tools to take control of their mental health journey.
+- **Privacy & Confidentiality:** Ensuring user data is handled securely and ethically by storing all data in the browser's local storage. No user accounts or server-side data storage.
+- **Personalization & Relevance:** Tailoring feedback, recommendations, and user experiences to individual needs, assessment results, and cultural contexts.
+- **Support & Compassion:** Offering a compassionate, understanding, and non-judgmental digital environment that reduces stigma.
+- **Holistic View & Evidence-Based Approach:** Providing internationally recognized core assessments to cover various aspects of mental health and basing recommendations on established best practices.
 
-## Key Features
+## Key Features Detailed
 
 1.  **Comprehensive Guided Mental Health Assessments:**
-    *   Users can take a wide array of internationally recognized questionnaires through standard forms or an AI conversational interface.
-    *   **Core Wellbeing:**
-        *   **WHO-5 Well-being Index:** Measures current mental well-being.
-    *   **Anxiety & Depression:**
-        *   **GAD-7 Anxiety Assessment:** Screens for and measures the severity of generalized anxiety disorder.
-        *   **PHQ-9 Depression Screening:** Screens for and measures the severity of depression.
-        *   **BDI-II (Beck Depression Inventory):** Assesses depressive symptom severity. (Illustrative version)
-        *   **BAI (Beck Anxiety Inventory):** Quantifies common anxiety symptoms. (Illustrative version)
-    *   **Stress & General Distress:**
-        *   **PSS (Perceived Stress Scale):** Measures how unpredictable, uncontrollable, and overloaded respondents find their lives. (Illustrative version)
-        *   **GHQ-12 (General Health Questionnaire):** Screens for general psychiatric distress and social dysfunction. (Illustrative version)
-    *   **Mood Disorders:**
-        *   **MDQ (Mood Disorder Questionnaire):** Screens for bipolar spectrum disorders. (Illustrative version)
-    *   **Sleep Quality:**
-        *   **PSQI (Pittsburgh Sleep Quality Index):** Assesses sleep quality and disturbances. (Illustrative version)
-        *   **ESS (Epworth Sleepiness Scale):** Gauges daytime sleepiness. (Illustrative version)
-    *   **Social Anxiety:**
-        *   **SPIN (Social Phobia Inventory):** Self-rating scale for social anxiety. (Illustrative version)
-        *   **LSAS (Liebowitz Social Anxiety Scale):** Quantifies fear and avoidance in social situations. (Illustrative version)
-    *   **Substance Use:**
-        *   **AUDIT (Alcohol Use Disorders Identification Test):** Screens for hazardous alcohol consumption. (Illustrative version)
-        *   **CAGE Questionnaire:** Rapid screen for potential alcohol dependency. (Illustrative version)
-    *   Assessments are presented in a user-friendly, step-by-step format with clear instructions and progress indicators.
-    *   Users can select specific assessments they wish to take.
-    *   Scoring is automated based on established guidelines for each assessment.
+    *   Users can take core internationally recognized questionnaires (WHO-5 Well-being Index, GAD-7 Anxiety Assessment, PHQ-9 Depression Screening).
+    *   **Assessment Selection:** Users can choose to take individual assessments or select multiple assessments to complete in a single session via a checkbox interface.
+    *   Assessments are presented in a clear, step-by-step format with instructions. Scoring is automated based on established guidelines, with interpretations provided.
+    *   **AI Conversational Assessment:** Users can opt to take assessments through an AI-guided chat interface.
 
 2.  **AI-Powered Analysis & Personalized Insights:**
     *   Upon completion of assessments, users receive immediate, AI-generated feedback through the `analyzeAssessmentFlow`.
-    *   The analysis interprets scores, provides context-aware insights, and offers actionable recommendations.
-    *   Recommendations can range from lifestyle adjustments (e.g., mindfulness exercises, physical activity) to suggestions for seeking professional help if scores indicate moderate to severe concerns.
-    *   The AI considers user-provided context, preferred recommendation types, and active goals to tailor its output.
-    *   If results suggest a need, users are prompted about the professional consultation feature.
+    *   The analysis interprets scores from submitted assessments, provides context-aware insights, and offers actionable recommendations tailored to the user's profile.
+    *   Recommendations span lifestyle adjustments (mindfulness, physical activity, sleep hygiene), coping strategies, and suggestions for seeking professional help if scores indicate moderate to severe concerns.
+    *   If results suggest a potential need, users are prompted about the professional consultation feature.
 
 3.  **Progress Tracking & Visualization:**
-    *   Assessment scores and AI-generated feedback are saved (locally in the browser for anonymous users, or in Firebase Firestore for authenticated users).
-    *   A dedicated "Progress" page allows users to view their historical assessment scores over time using interactive line charts.
-    *   This visual representation helps users identify trends, patterns, and improvements in their mental wellbeing.
+    *   Assessment scores and key AI-generated feedback snippets are saved locally in the browser for all users.
+    *   A dedicated "Progress" page allows users to view their historical assessment scores over time using interactive line charts, enabling them to identify trends, patterns, and improvements.
 
 4.  **Wellbeing Goal Setting & Tracking:**
-    *   Users can set specific, measurable, achievable, relevant, and time-bound (SMART) goals related to their assessment scores or general wellbeing.
-    *   Goals can be to reach a specific score or improve by a certain number of points.
-    *   The system tracks progress towards these goals based on subsequent assessment results and updates goal status (active, achieved, missed).
+    *   Users can set specific, measurable, achievable, relevant, and time-bound (SMART) goals related to their assessment scores or general wellbeing (e.g., "Reduce GAD-7 score to below 10 within 2 months").
+    *   Goals can be defined to reach a specific score or improve by a certain number of points from a baseline.
+    *   The system tracks progress towards these goals based on subsequent assessment results and updates goal status (active, achieved, missed, archived). Data is stored locally.
 
-5.  **Mood Tracker:**
-    *   A daily mood logging feature allows users to record their mood (e.g., Great, Good, Okay, Bad, Awful).
-    *   Users can optionally add notes and relevant activities/tags (e.g., "work stress," "exercise," "socializing") associated with their mood.
-    *   Helps in identifying patterns and triggers affecting daily mood fluctuations.
+5.  **Daily Mood Tracker:**
+    *   A simple yet effective daily mood logging feature allows users to record their mood on a 5-point scale (e.g., Great, Good, Okay, Bad, Awful).
+    *   Users can optionally add textual notes and relevant activities/tags (e.g., "work stress," "exercise," "socializing") associated with their mood.
+    *   This helps in identifying patterns, triggers, and correlations affecting daily mood fluctuations. Data is stored locally.
 
 6.  **Empathetic AI Chatbot:**
-    *   The `aiChatbotFlow` provides a conversational AI for users to express their thoughts and feelings.
-    *   The chatbot aims to provide supportive, empathetic, and personalized messages.
-    *   Users can select a preferred tone for the chatbot (e.g., empathetic, motivational, calm, neutral, direct).
-    *   The chatbot is designed to recognize distress and, if necessary, gently guide users towards professional help or crisis helplines.
-    *   Utilizes ARIA live regions for enhanced accessibility.
+    *   The `aiChatbotFlow` provides a conversational AI for users to express their thoughts and feelings in a safe, non-judgmental environment.
+    *   The chatbot aims to provide supportive, empathetic, and contextually relevant messages.
+    *   Users can select a preferred conversational tone for the chatbot (e.g., empathetic, motivational, calm, neutral, direct).
+    *   The chatbot is designed to recognize expressions of distress and, if necessary, gently guide users towards professional help or provide relevant crisis helpline information.
+    *   Utilizes ARIA live regions for enhanced accessibility for screen reader users.
 
 7.  **Professional Consultation Booking (Simulated & Real Potential):**
     *   A feature to book a (currently simulated) video consultation with a mental health professional.
     *   Users can select an available date and time slot from an interactive calendar.
-    *   The `bookConsultationFlow` handles the booking request and provides a confirmation.
-    *   The page includes a basic video call interface (simulated) demonstrating how users could connect with professionals. This can be extended to integrate with actual video conferencing APIs.
+    *   The `bookConsultationFlow` (currently simulated) handles the booking request and provides a confirmation.
+    *   The page includes a basic video call interface (simulated, using local camera/mic access for demo) demonstrating how users could connect. This can be extended to integrate with actual video conferencing APIs.
 
 8.  **Local Support & Helplines (India-Focused):**
-    *   A dedicated page providing a curated list of mental health helplines and support resources available in India, including government-run and NGO/private foundation lines.
-    *   Includes contact details, descriptions, and availability.
-    *   Emphasizes immediate help options for users in crisis.
+    *   A dedicated page providing a curated and verified list of mental health helplines and support resources available in India.
+    *   Includes government-run national helplines and various NGO/private foundation lines, with contact details, descriptions, availability, and focus areas.
+    *   Emphasizes immediate help options for users in crisis or seeking urgent support.
 
-9.  **User Authentication (Optional):**
-    *   Secure email/password authentication using Firebase Authentication.
-    *   Authenticated users have their assessment history, goals, and progress data synced to Firebase Firestore, enabling access across multiple devices.
-    *   Anonymous users can still use most features, with data stored locally in their browser's localStorage.
-    *   Login prompts are strategically placed (e.g., on results page to save progress).
+9.  **Multi-Language Support (English & Hindi):**
+    *   The application interface and key content can be dynamically switched between English and Hindi, enhancing accessibility for a wider audience in India.
+    *   Uses React Context API for managing language state and translations.
 
-10. **Multi-Language Support:**
-    *   The application interface and content can be switched between English and Hindi, catering to a wider audience in India.
-
-11. **Responsive and Accessible Design:**
+10. **Responsive and Accessible Design:**
     *   The UI is built with Tailwind CSS and ShadCN/UI components, ensuring responsiveness across desktops, tablets, and mobile devices.
-    *   Focus on clear typography, intuitive navigation, accessible components (ARIA labels, high contrast considerations), and fluid animations.
-    *   Neumorphic and glassmorphic UI elements enhance visual appeal.
+    *   Focus on clear typography (Geist Sans), intuitive navigation, accessible components (ARIA labels, roles, keyboard navigability, high contrast considerations), and fluid animations (subtle neumorphism, glassmorphism, and load-in effects) to enhance user experience.
 
-12. **Settings & Data Management:**
-    *   Users can manage application settings, including clearing locally stored data.
-    *   Placeholders for future notification preferences and theme customization.
-    *   Placeholders for integrations (Spotify, Fitness Trackers).
+11. **Settings & Data Management:**
+    *   Users can manage application settings, including clearing locally stored browser data.
+    *   Placeholders for future notification preferences (assessment reminders, goal check-ins) and theme customization.
+    *   Placeholders for integrations with third-party services (Spotify, Fitness Trackers).
 
 ## Technology Stack
 
-*   **Frontend:**
-    *   [Next.js](https://nextjs.org/) (v15+ with App Router, React Server Components, TypeScript)
-    *   [React](https://reactjs.org/) (v18+)
-    *   [Tailwind CSS](https://tailwindcss.com/) for utility-first styling.
-    *   [ShadCN/UI](https://ui.shadcn.com/) for pre-built, accessible, and customizable UI components.
-    *   `lucide-react` for icons.
-    *   `recharts` for creating interactive charts for progress tracking.
-    *   `react-hook-form` for efficient and scalable form management.
-    *   `zod` for schema declaration and validation.
-    *   `date-fns` for date formatting and manipulation.
-*   **Backend & Database (Serverless):**
-    *   [Firebase](https://firebase.google.com/)
-        *   **Firebase Authentication:** For user sign-up, login, and session management.
-        *   **Firebase Firestore:** A NoSQL cloud database for storing authenticated user data (assessment history, goals, progress).
+*   **Frontend & UI:**
+    *   [Next.js](https://nextjs.org/) (v15+ with App Router, React Server Components, TypeScript): For a robust, performant, and modern React framework.
+    *   [React](https://reactjs.org/) (v18+): Core library for building user interfaces.
+    *   [Tailwind CSS](https://tailwindcss.com/): Utility-first CSS framework for rapid UI development and styling.
+    *   [ShadCN/UI](https://ui.shadcn.com/): A collection of beautifully designed, accessible, and customizable UI components built with Radix UI and Tailwind CSS.
+    *   `lucide-react`: For a comprehensive set of clean and consistent icons.
+    *   `recharts`: For creating interactive and responsive charts for progress tracking.
+    *   `react-hook-form` & `@hookform/resolvers`: For efficient, scalable, and type-safe form management and validation.
+    *   `zod`: For schema declaration and data validation, used with `react-hook-form` and Genkit flows.
+    *   `date-fns`: For robust date formatting and manipulation.
 *   **AI Integration:**
-    *   [Genkit (by Google)](https://firebase.google.com/docs/genkit) (v1.x)
-        *   Utilizes Google AI models (e.g., Gemini series like `gemini-2.0-flash`) for:
+    *   [Genkit (by Google)](https://firebase.google.com/docs/genkit) (v1.x): An open-source framework for building AI-powered features.
+        *   Utilizes Google AI models (e.g., Gemini series like `gemini-pro` or `gemini-2.0-flash`) for:
             *   Analyzing assessment results and generating personalized feedback/recommendations.
-            *   Powering the AI chatbot's conversational abilities.
+            *   Powering the AI chatbot's conversational abilities and tone adaptation.
             *   Simulating the consultation booking logic.
-        *   AI flows are defined in the `src/ai/flows/` directory.
+        *   AI flows are defined as server-side TypeScript functions in the `src/ai/flows/` directory.
 *   **Development & Build Tools:**
-    *   Node.js (latest LTS recommended)
-    *   npm (or yarn)
-    *   TypeScript
-    *   ESLint & Prettier (assumed for code quality)
+    *   Node.js (latest LTS recommended, e.g., v18.x or v20.x).
+    *   npm (or yarn) for package management.
+    *   TypeScript for static typing and improved code quality.
+    *   ESLint & Prettier (assumed for code linting and formatting, configured via IDE or project settings).
 *   **Deployment (Assumed):**
-    *   The application is structured for easy deployment on platforms like Vercel, Firebase Hosting, or Google Cloud Run.
+    *   The application is structured for easy deployment on modern hosting platforms like Vercel (ideal for Next.js), Firebase Hosting, or Google Cloud Run.
 
 ## Project Structure
 
-The project follows a standard Next.js App Router structure with clear separation of concerns:
+The project follows a standard Next.js App Router structure with a clear separation of concerns, promoting maintainability and scalability:
 
 ```
 manasooth/
-├── .env                   # Environment variables (API keys, Firebase config) - IMPORTANT: Keep this file private.
+├── .env                   # Environment variables (API keys) - IMPORTANT: Keep this file private.
 ├── .vscode/               # VSCode specific settings
-├── components/            # Reusable UI components
+├── components/            # Reusable UI components, organized by feature or type
 │   ├── assessment/        # Components for assessment forms, questions (e.g., AssessmentForm.tsx)
-│   ├── auth/              # AuthGuard component for protecting routes
-│   ├── goals/             # Components for goal setting and display (e.g., GoalForm.tsx, GoalCard.tsx)
+│   ├── common/            # General-purpose common components (Removed: ScrollAnimatedCube.tsx)
+│   ├── goals/             # Components for goal setting, display, and forms (e.g., GoalForm.tsx, GoalCard.tsx)
 │   ├── integrations/      # Components for third-party service integrations (e.g., Integrations.tsx)
 │   ├── layout/            # Core layout components (AppLayout.tsx, AppProviders.tsx, SidebarNav.tsx, LanguageSwitcher.tsx)
 │   ├── mood/              # Components for mood tracking (e.g., MoodLogForm.tsx)
 │   └── ui/                # ShadCN/UI components (button, card, dialog, etc.) - Pre-built and customized
-├── contexts/              # React Context API providers
-│   ├── AuthContext.tsx    # Manages Firebase authentication state and functions
-│   └── LanguageContext.tsx# Manages application language state and translation
-├── hooks/                 # Custom React hooks
-│   ├── use-mobile.tsx     # Detects if the viewport is mobile-sized
-│   └── use-toast.ts       # Custom hook for displaying toast notifications
+├── contexts/              # React Context API providers for global state management
+│   ├── AuthContext.tsx    # Manages (now stubbed/disabled) authentication state
+│   └── LanguageContext.tsx# Manages application language state (en/hi) and translation utilities
+├── hooks/                 # Custom React hooks for reusable logic
+│   ├── use-mobile.tsx     # Detects if the viewport is mobile-sized for responsive adjustments
+│   └── use-toast.ts       # Custom hook for displaying toast notifications system-wide
 ├── lib/                   # Utility functions, constants, type definitions, and Firebase setup
-│   ├── assessment-questions.ts # Definitions for all assessment questions, options, and scoring logic
-│   ├── constants.ts       # App-wide constants (assessment types, localStorage keys, etc.)
-│   ├── firebase.ts        # Firebase app initialization and service configuration
-│   ├── navigation.ts      # Configuration for sidebar and header navigation items
-│   ├── types.ts           # Core TypeScript type definitions for the application
+│   ├── assessment-questions.ts # Definitions for core assessment questions, options, and scoring logic
+│   ├── constants.ts       # App-wide constants (assessment types, localStorage keys, navigation items, etc.)
+│   ├── firebase.ts        # Firebase app initialization (Auth part is minimal/disabled)
+│   ├── navigation.ts      # Configuration for sidebar and header navigation items, including icons and translations
+│   ├── types.ts           # Core TypeScript type definitions for the application (e.g., UserGoal, MoodEntry)
 │   └── utils.ts           # General utility functions (e.g., cn for Tailwind class merging)
 ├── public/                # Static assets (e.g., favicon.ico, images) - Served from the root
 ├── src/
 │   ├── ai/                # Genkit AI related files
-│   │   ├── flows/         # Genkit AI flow definitions
-│   │   │   ├── ai-chatbot.ts          # Logic for the AI support chatbot
-│   │   │   ├── analyze-assessment.ts  # Logic for analyzing assessment results
-│   │   │   └── book-consultation.ts   # Logic for (simulated) consultation booking
-│   │   ├── dev.ts         # Entry point for running the Genkit development server
-│   │   └── genkit.ts      # Global Genkit AI object configuration (model selection, plugins)
-│   ├── app/               # Next.js App Router directory
+│   │   ├── flows/         # Genkit AI flow definitions (server-side TypeScript functions)
+│   │   │   ├── ai-chatbot.ts          # Logic for the AI support chatbot, including tone adaptation
+│   │   │   ├── analyze-assessment.ts  # Logic for analyzing assessment results and generating insights
+│   │   │   └── book-consultation.ts   # Logic for (simulated) professional consultation booking
+│   │   ├── dev.ts         # Entry point for running the Genkit development server (`genkit start`)
+│   │   └── genkit.ts      # Global Genkit AI object configuration (model selection, plugins like googleAI)
+│   ├── app/               # Next.js App Router directory - defines routes and UI structure
 │   │   ├── (main)/        # Main application routes group (requires layout with sidebar/header)
 │   │   │   ├── assessment/      # Assessment-related pages
-│   │   │   │   ├── [type]/page.tsx # Dynamic page for individual assessments
-│   │   │   │   ├── ai-conversational/page.tsx # Page for AI guided assessments
-│   │   │   │   ├── page.tsx        # Landing page for starting assessments
+│   │   │   │   ├── [type]/page.tsx # Dynamic page for individual standard assessments
+│   │   │   │   ├── ai-conversational/page.tsx # Page for AI guided conversational assessments
+│   │   │   │   ├── page.tsx        # Landing page for selecting assessments
 │   │   │   │   ├── report/page.tsx # Page for displaying/downloading a detailed assessment report
 │   │   │   │   └── results/page.tsx# Page displaying assessment results and AI analysis
 │   │   │   ├── chatbot/page.tsx     # AI Chatbot interface page
-│   │   │   ├── consultation/page.tsx# Professional consultation booking and (simulated) call page
+│   │   │   ├── consultation/page.tsx# Professional consultation booking and (simulated) video call page
 │   │   │   ├── goals/page.tsx       # Wellbeing goal setting and tracking page
-│   │   │   ├── local-support/page.tsx# Page listing local support helplines
+│   │   │   ├── local-support/page.tsx# Page listing local support helplines in India
 │   │   │   ├── mood-tracker/page.tsx# Mood logging and history page
-│   │   │   ├── progress/page.tsx    # User progress visualization page
-│   │   │   ├── settings/page.tsx    # Application settings page
-│   │   │   ├── layout.tsx         # Layout for the main application section (includes sidebar, header)
+│   │   │   ├── progress/page.tsx    # User progress visualization page (charts)
+│   │   │   ├── settings/page.tsx    # Application settings page (data management, preferences)
+│   │   │   ├── layout.tsx         # Layout for the main application section (includes AppLayout with sidebar, header)
 │   │   │   └── page.tsx           # Home/Dashboard page of the application
-│   │   ├── auth/            # Authentication routes group (login, signup)
-│   │   │   ├── login/page.tsx
-│   │   │   ├── signup/page.tsx
-│   │   │   └── layout.tsx     # Layout specific to authentication pages
-│   │   ├── globals.css      # Global styles, Tailwind CSS base, and ShadCN/UI theme variables
-│   │   └── layout.tsx       # Root layout for the entire application
+│   │   ├── auth/            # Authentication routes group (login - now removed/obsolete)
+│   │   │   └── (Removed login/page.tsx and its layout.tsx)
+│   │   ├── globals.css      # Global styles, Tailwind CSS base directives, and ShadCN/UI theme variables (CSS HSL)
+│   │   └── layout.tsx       # Root layout for the entire application (includes AppProviders, Toaster)
 ├── .gitignore             # Specifies intentionally untracked files that Git should ignore
-├── components.json        # ShadCN/UI configuration file
-├── next.config.ts         # Next.js configuration file
-├── package.json           # Project dependencies and scripts
-├── tailwind.config.ts     # Tailwind CSS configuration file
-└── tsconfig.json          # TypeScript configuration file
+├── components.json        # ShadCN/UI configuration file (defines paths, style, etc.)
+├── next.config.ts         # Next.js configuration file (TypeScript/ESLint settings, image remote patterns)
+├── package.json           # Project dependencies (npm packages) and scripts (dev, build, start, lint)
+├── tailwind.config.ts     # Tailwind CSS configuration file (custom theme extensions, plugins)
+└── tsconfig.json          # TypeScript configuration file (compiler options, paths)
 ```
 
 ## Getting Started
@@ -243,42 +207,33 @@ Follow these instructions to set up and run the Manasooth project locally on you
 
 ### Prerequisites
 
-*   **Node.js:** Version 18.x or later (latest LTS is recommended). You can download it from [nodejs.org](https://nodejs.org/).
-*   **npm (or yarn):** Comes bundled with Node.js.
+*   **Node.js:** Version 18.x or later (latest LTS, e.g., v20.x, is recommended). Download from [nodejs.org](https://nodejs.org/).
+*   **npm (or yarn/pnpm):** Comes bundled with Node.js. This project uses `npm` in its scripts.
 *   **Git:** For version control. Download from [git-scm.com](https://git-scm.com/).
-*   **A Firebase Project:** You'll need to create a Firebase project to use Firebase Authentication and Firestore. See the [Firebase Setup](#firebase-setup) section for details.
-*   **(Optional but Recommended) Google Cloud Account & Google AI Studio API Key:** For Genkit to use Google AI models (like Gemini), you might need to set up a Google Cloud project and enable the Vertex AI API, or get an API key from Google AI Studio. Refer to [Genkit documentation](https://firebase.google.com/docs/genkit/get-started) for the latest authentication methods.
+*   **(Optional but Recommended) Google Cloud Account & Google AI Studio API Key:** For Genkit to use Google AI models (like Gemini), you might need to set up a Google Cloud project and enable the Vertex AI API, or get an API key from Google AI Studio. Refer to [Genkit documentation](https://firebase.google.com/docs/genkit/get-started) for the latest authentication methods and how to set up the `googleAI()` plugin. Your environment typically needs to be authenticated (e.g., via `gcloud auth application-default login` or by setting `GOOGLE_API_KEY`).
 
 ### Environment Variables
 
-Create a `.env` file in the root directory of your project. This file will store your Firebase configuration and any other sensitive keys. **Do not commit this file to version control.**
+Create a `.env` file in the root directory of your project. This file will store your API keys and any other sensitive configuration. **Do not commit this file to version control.**
 
 Example `.env` file:
 
 ```env
-# Firebase Configuration (Obtain these from your Firebase project settings)
-NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_FIREBASE_API_KEY"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_FIREBASE_AUTH_DOMAIN"
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_FIREBASE_PROJECT_ID"
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_FIREBASE_STORAGE_BUCKET"
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_FIREBASE_MESSAGING_SENDER_ID"
-NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_FIREBASE_APP_ID"
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_FIREBASE_MEASUREMENT_ID" # Optional, for Firebase Analytics
-
-# Firebase Emulators (Optional - for local development without hitting live Firebase services)
-# Set to "true" to enable emulators, "false" or remove to use live services.
-# NEXT_PUBLIC_USE_FIREBASE_EMULATOR="true"
-# NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST="http://127.0.0.1:9099" # Default auth emulator URL
-# NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST="127.0.0.1:8080"          # Default Firestore emulator host and port
-
 # Genkit / Google AI Configuration
-# If your Genkit setup with googleAI() plugin requires an API key directly:
+# If your Genkit setup with googleAI() plugin requires an API key directly (e.g., from Google AI Studio):
 # GOOGLE_API_KEY="YOUR_GOOGLE_AI_STUDIO_API_KEY"
 # Alternatively, ensure your environment is authenticated with Google Cloud CLI (gcloud auth application-default login)
-# if the googleAI() plugin is configured to use application-default credentials.
-```
+# if the googleAI() plugin is configured to use application-default credentials, which is often preferred for GCP projects.
 
-**Important:** Replace placeholder values like `"YOUR_FIREBASE_API_KEY"` with your actual credentials from your Firebase project. If these are not set correctly, Firebase services will not initialize, and authentication will fail.
+# Firebase Configuration (Not needed for auth, but keep if using other Firebase services like Firestore in future)
+# NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_FIREBASE_API_KEY_IF_NEEDED_FOR_OTHER_SERVICES"
+# NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_FIREBASE_AUTH_DOMAIN_IF_NEEDED_FOR_OTHER_SERVICES"
+# NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_FIREBASE_PROJECT_ID_IF_NEEDED_FOR_OTHER_SERVICES"
+# NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_FIREBASE_STORAGE_BUCKET_IF_NEEDED"
+# NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_FIREBASE_MESSAGING_SENDER_ID_IF_NEEDED"
+# NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_FIREBASE_APP_ID_IF_NEEDED"
+```
+**Note:** Since login/signup is removed, Firebase configuration variables are only needed if you plan to use other Firebase services (like Firestore for future cloud sync, though that's not currently implemented). For purely local operation, these might not be strictly necessary.
 
 ### Installation and Running
 
@@ -293,216 +248,107 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_FIREBASE_MEASUREMENT_ID" # Optional, f
     ```bash
     npm install
     ```
-    *(or `yarn install` if you prefer yarn)*
+    *(or `yarn install` or `pnpm install` if you prefer and adapt `package.json` scripts)*
 
 3.  **Set Up Environment Variables:**
-    Create the `.env` file as described in the [Environment Variables](#environment-variables) section and populate it with your Firebase credentials and any other required keys.
+    Create the `.env` file as described in the [Environment Variables](#environment-variables) section and populate it with any required keys (like `GOOGLE_API_KEY` if needed for Genkit).
 
 4.  **Run the Next.js Development Server:**
-    This command starts the main web application.
+    This command starts the main web application frontend.
     ```bash
     npm run dev
     ```
-    The application will typically be available at `http://localhost:9002`. The port is configured in `package.json`.
+    The application will typically be available at `http://localhost:9002` (the port is configured in `package.json`).
 
 5.  **Run the Genkit Development Server (in a separate terminal):**
-    This server is required for the AI-powered features (assessment analysis, chatbot) to function.
+    This server is required for the AI-powered features (assessment analysis, chatbot, consultation booking simulation) to function. It runs your Genkit flows.
     ```bash
     npm run genkit:dev
     ```
-    Or, for automatic reloading on file changes:
+    Or, for automatic reloading of flows on file changes during development:
     ```bash
     npm run genkit:watch
     ```
-    Genkit usually starts its development UI on `http://localhost:4000`, where you can inspect and test your AI flows.
+    Genkit usually starts its development UI (Flows UI) on `http://localhost:4000`, where you can inspect, test, and trace your AI flows.
 
-You should now have both the Next.js frontend and the Genkit AI backend running locally.
+You should now have both the Next.js frontend and the Genkit AI backend running locally. Ensure both are running concurrently to use all features of Manasooth.
 
-## Firebase Setup
+## Genkit AI Flows Explained
 
-Manasooth uses Firebase for authentication and database storage.
+Manasooth utilizes Genkit to integrate AI capabilities, primarily through Google's Gemini models.
 
-### Creating a Firebase Project
-
-1.  Go to the [Firebase Console](https://console.firebase.google.com/).
-2.  Click on "Add project" and follow the on-screen instructions to create a new Firebase project.
-3.  Once your project is created, navigate to your Project settings (click the gear icon next to "Project Overview").
-
-### Enabling Services
-
-1.  **Register Your Web App:**
-    *   In your Firebase project settings, scroll down to "Your apps."
-    *   Click on the Web icon (`</>`) to add a new web app.
-    *   Give your app a nickname (e.g., "Manasooth Web").
-    *   **Do NOT** check the box for "Also set up Firebase Hosting for this app" unless you plan to deploy directly to Firebase Hosting using Firebase CLI tools (Vercel deployment is also a common choice for Next.js).
-    *   Click "Register app."
-    *   Firebase will provide you with a `firebaseConfig` object. Copy these values into your `.env` file as shown in the [Environment Variables](#environment-variables) section.
-
-2.  **Enable Firebase Authentication:**
-    *   In the Firebase console, go to "Build" > "Authentication" from the left sidebar.
-    *   Click on the "Sign-in method" tab.
-    *   Enable the "Email/Password" provider. You can also enable other providers like Google, Facebook, etc., if you wish to add them later.
-
-3.  **Enable Firebase Firestore:**
-    *   In the Firebase console, go to "Build" > "Firestore Database" from the left sidebar.
-    *   Click "Create database."
-    *   Choose to start in **Production mode** or **Test mode**.
-        *   **Test mode** allows open access for a limited time, suitable for initial development.
-        *   **Production mode** starts with locked-down rules, which you'll need to configure.
-    *   Select a Firestore location (choose one geographically close to your users).
-    *   Click "Enable."
-
-### Security Rules
-
-For Firestore, you need to set up security rules to control access to your data. Here's an example to get started. **Refine these rules for production to ensure data privacy and security.**
-
-Navigate to "Firestore Database" > "Rules" tab in the Firebase console.
-
-```firestore-rules
-rules_version = '2';
-
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    // Users collection: stores user-specific data that is not assessment history
-    // Example: user preferences, profile information (if any)
-    match /users/{userId}/{document=**} {
-      // Allow users to read and write their own documents
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // assessmentHistory collection: stores completed assessment sets for authenticated users
-    // Each user has their own subcollection of assessments
-    match /assessmentHistory/{userId}/assessments/{assessmentId} {
-        // Allow authenticated users to create, read, update, and delete their own assessment records.
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // userGoals collection: stores user-defined goals for authenticated users
-    match /userGoals/{userId}/goals/{goalId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // moodEntries collection: stores mood entries for authenticated users
-    match /moodEntries/{userId}/entries/{entryId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
-```
-
-**Explanation of Rules:**
-
-*   `request.auth != null`: Ensures the user is authenticated.
-*   `request.auth.uid == userId`: Ensures a user can only access data under their own `userId`.
-*   These rules provide a basic level of security where users can only manage their own data. For more complex scenarios (e.g., admin access, shared data), you'll need more sophisticated rules.
-
-## Genkit AI Flows
-
-Manasooth leverages Genkit for its AI capabilities. The core AI logic is encapsulated in "flows" located in `src/ai/flows/`.
-
-*   **`src/ai/genkit.ts`:** This file configures the global Genkit `ai` object. It specifies the AI model to be used (e.g., `googleai/gemini-2.0-flash`) and any necessary plugins (like `@genkit-ai/googleai`).
+*   **Global Configuration (`src/ai/genkit.ts`):** Initializes the global Genkit `ai` object, model selection, and plugins.
+*   **Development Server (`src/ai/dev.ts`):** Entry point for `genkit start`.
 
 ### `analyzeAssessmentFlow`
 
 *   **File:** `src/ai/flows/analyze-assessment.ts`
-*   **Purpose:** Takes the user's scores from potentially multiple assessments (WHO-5, GAD-7, PHQ-9, PSS, GHQ-12, BDI-II, BAI, MDQ, PSQI, ESS, SPIN, LSAS, AUDIT, CAGE) as input. It then analyzes these scores, potentially considering user-provided context, preferred recommendation types, and active goals.
-*   **Input (`AnalyzeAssessmentInput`):**
-    *   Scores for all relevant assessments (e.g., `who5Score`, `gad7Score`, `pssScore`, etc.).
-    *   `userContext` (optional): String for additional user notes.
-    *   `preferredRecommendationTypes` (optional): Array of strings (e.g., "mindfulness", "physical activity").
-    *   `activeGoals` (optional): Array of objects describing the user's active wellbeing goals.
-*   **Output (`AnalyzeAssessmentOutput`):**
-    *   `feedback`: String containing personalized feedback based on the scores.
-    *   `recommendations`: String with actionable recommendations.
-    *   `requiresConsultation`: Boolean indicating if the AI suggests a professional consultation.
-*   **Usage:** Called from the `/assessment/results` page after assessments are completed.
-    *   **Note:** The current AI prompt in `analyze-assessment.ts` has been updated to *accept* all new assessment scores in its input schema, but the prompt's detailed interpretation logic for *all* these new scales is a significant future enhancement. It currently provides more detailed feedback on WHO-5, GAD-7, and PHQ-9.
+*   **Purpose:** Interprets user assessment results from WHO-5, GAD-7, and PHQ-9, generating personalized feedback and recommendations.
+*   **Input (`AnalyzeAssessmentInput`):** Scores for WHO-5, GAD-7, PHQ-9, optional user context, preferred recommendation types, and active goals.
+*   **Output (`AnalyzeAssessmentOutput`):** Personalized feedback, actionable recommendations, and a boolean `requiresConsultation` flag.
+*   **Usage:** Called from `/assessment/results` page.
 
 ### `aiChatbotFlow`
 
 *   **File:** `src/ai/flows/ai-chatbot.ts`
-*   **Purpose:** Powers the AI chatbot, providing personalized and supportive messages. It can consider the user's current message, preferred tone, and recent chat history.
-*   **Input (`AIChatbotInput`):**
-    *   `message`: String (user's current message).
-    *   `preferredTone` (optional): Enum (e.g., 'empathetic', 'motivational', 'calm', 'neutral', 'direct').
-    *   `chatHistory` (optional): Array of previous messages for context.
-*   **Output (`AIChatbotOutput`):**
-    *   `response`: String (the AI's supportive response).
-*   **Usage:** Used in the `/chatbot` page for interactive conversations.
+*   **Purpose:** Powers the interactive AI chatbot with empathetic responses.
+*   **Input (`AIChatbotInput`):** User message, preferred tone (empathetic, motivational, etc.), and chat history.
+*   **Output (`AIChatbotOutput`):** AI's generated response.
+*   **Usage:** Used in `/chatbot` page. Instructed to provide crisis info if severe distress is detected.
 
 ### `bookConsultationFlow`
 
 *   **File:** `src/ai/flows/book-consultation.ts`
-*   **Purpose:** Simulates the process of booking a consultation. In a real application, this flow would interact with a calendar API or a database to manage actual bookings.
-*   **Input (`BookConsultationInput`):**
-    *   `date`: String (YYYY-MM-DD).
-    *   `time`: String (HH:mm AM/PM).
-    *   `userName` (optional): String.
-*   **Output (`BookConsultationOutput`):**
-    *   `success`: Boolean indicating if the (simulated) booking was successful.
-    *   `message`: String with a confirmation or error message.
-    *   `bookingId` (optional): String, a unique ID for the booking if successful.
-*   **Usage:** Called from the `/consultation` page when a user attempts to book an appointment.
+*   **Purpose:** Simulates booking a professional consultation.
+*   **Input (`BookConsultationInput`):** Selected date, time, and optional user name.
+*   **Output (`BookConsultationOutput`):** Success status, confirmation message, and simulated booking ID.
+*   **Usage:** Called from `/consultation` page.
 
-Running `npm run genkit:dev` (or `genkit:watch`) starts the Genkit development server, making these flows accessible to the Next.js application.
+## Future Improvements & Detailed Roadmap
 
-## Future Improvements & Roadmap
+Manasooth is envisioned as an evolving platform. Potential future enhancements include:
 
-Manasooth is an evolving platform. Potential future enhancements include:
+*   **Core Enhancements & Stability:**
+    *   **Robust Local Data Management:** Enhance resilience and error handling for local storage operations.
+    *   **Advanced Error Handling & Logging:** Implement comprehensive error handling across the frontend and backend (Genkit flows).
+    *   **Unit & Integration Testing:** Introduce a testing framework (e.g., Jest, React Testing Library).
 
-*   **Enhanced AI Capabilities:**
-    *   **Detailed AI Analysis for All Assessments:** Expand the `analyzeAssessmentFlow` prompt to provide deep, nuanced interpretations and recommendations for *all* integrated assessment scales (PSS, GHQ-12, BDI-II, BAI, MDQ, PSQI, ESS, SPIN, LSAS, AUDIT, CAGE).
-    *   Deeper sentiment analysis in the chatbot.
-    *   More nuanced and adaptive recommendations based on long-term progress and combined assessment profiles.
-    *   Proactive suggestions or check-ins based on user patterns.
-*   **Real Professional Network Integration:**
-    *   Transitioning the simulated consultation booking to a real system for connecting users with licensed therapists (requires significant legal, ethical, and logistical considerations).
-*   **Firebase Data Sync for Authenticated Users:**
-    *   Implement Firestore data synchronization for authenticated users for assessment history, goals, and mood entries. Currently, these are primarily stored in localStorage.
-*   **Content Modules:**
-    *   Educational articles, guided meditation audio/video, mindfulness exercises integrated into the platform.
-*   **Gamification:**
-    *   Points, badges, or streaks for completing assessments, achieving goals, or engaging with content.
-*   **Advanced Data Export & Reporting:**
-    *   More detailed and customizable report generation beyond the current "Print to PDF" functionality.
-*   **Wearable Device Integration:**
-    *   Actual integration for syncing data like sleep patterns or activity levels (with user consent) to enrich insights beyond the current placeholder UI.
-*   **Native Mobile Applications:**
-    *   Dedicated iOS and Android apps for a more integrated mobile experience.
-*   **Push Notifications:**
-    *   Implement actual push notification system for reminders.
-*   **Customizable Themes:**
-    *   Allow users to select different color themes.
-*   **Community Features:**
-    *   Secure and moderated forums or support groups (with strong emphasis on safety and privacy).
-*   **A/B Testing Platform Integration:**
-    *   Integrate tools for A/B testing UI/UX changes.
-*   **Enhanced Accessibility:**
-    *   Continuous accessibility audits and improvements beyond ARIA roles.
-*   **Voice-Activated Navigation and VUI Design.**
-*   **Context-Aware UI & Predictive Content Flow (Advanced AI).**
-*   **Interactive 3D Components & Advanced Visual Styles (WebGL/Three.js).**
+*   **Feature Expansion:**
+    *   **Real Professional Network Integration:** Transition simulated consultation to a real system (database for professionals, secure payments, video conferencing API).
+    *   **Guided Content Modules:** Curate educational articles, guided meditations, and mindfulness exercises.
+    *   **Enhanced Chatbot Capabilities:** Deeper sentiment analysis, proactive check-ins (with consent), integration of therapeutic techniques.
+    *   **Advanced Data Export & Reporting:** Customizable PDF reports, secure sharing with professionals.
+
+*   **Engagement & Personalization:**
+    *   **Gamification & Rewards:** Points, badges, streaks for engagement.
+    *   **Wearable Device Integration:** Sync data like sleep patterns, activity levels (with consent).
+    *   **Push Notifications & Reminders:** For assessments, goals, appointments.
+    *   **Customizable Themes & UI Preferences.**
+    *   **Personalized Onboarding Experience.**
+
+*   **Community & Advanced Tech:**
+    *   **Secure Community Features (Moderated):** Forums or support groups (if user accounts are re-introduced).
+    *   **Voice-Activated Navigation and VUI Design.**
+    *   **Context-Aware UI & Predictive Content Flow.**
+    *   **Ethical AI Monitoring & Bias Detection.**
+
+*   **Ongoing:**
+    *   **Continuous Accessibility Audits & Improvements.**
+    *   **Performance Optimization.**
+    *   **Security Audits & Hardening.**
 
 ## Contributing
 
-Currently, Manasooth is a project developed by individuals. If you are interested in contributing, please reach out to the maintainers. We may open up for community contributions in the future.
-
-Potential areas for contribution:
-*   Bug fixes and performance improvements.
-*   Accessibility enhancements.
-*   New feature development (aligned with the project roadmap).
-*   Translation and localization for more languages.
-*   Improving documentation.
-*   Developing the detailed AI logic for new assessment types.
+Currently, Manasooth is primarily a project developed by its initial authors. However, community contributions could be valuable in the future. If you are interested in contributing, please observe standard open-source practices (fork, branch, PR).
 
 ## License
 
-This project is currently under a proprietary license. Please contact the authors for more information.
-(If you plan to make it open source, choose a license like MIT, Apache 2.0, or GPL and update this section accordingly.)
+This project is currently under a proprietary license.
+(If you plan to make it open source in the future, choose an appropriate license like MIT, Apache 2.0, or GPL and update this section accordingly.)
 
 ---
 
-This README provides a comprehensive guide to understanding, setting up, and running the Manasooth application. For more specific details on Next.js, Firebase, or Genkit, please refer to their respective official documentations.
-Remember to replace placeholder Firebase and Genkit API keys in your `.env` file with actual credentials for the application to function correctly.
-**Disclaimer:** The assessment questions for newly added scales (BDI-II, BAI, PSS, GHQ-12, MDQ, PSQI, ESS, SPIN, LSAS, AUDIT, CAGE) in this project are illustrative examples for development purposes and are NOT the official clinical instruments. For actual clinical use, the official versions of these scales must be obtained and used according to their licensing and guidelines.
+This README provides a comprehensive guide to understanding, setting up, and running the Manasooth application.
+Remember to set up your `.env` file, especially if using Genkit AI features.
+
+**Disclaimer:** Manasooth is a tool for self-awareness and support; it is NOT a substitute for professional medical advice, diagnosis, or treatment. The assessment questions used in this app for WHO-5, GAD-7, and PHQ-9 are based on publicly available versions of these instruments. For actual clinical use, official versions should always be consulted and used according to their licensing and guidelines.

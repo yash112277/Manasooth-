@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, ClipboardList, Sparkles, BarChart3, CheckSquare, Square } from 'lucide-react';
+import { ArrowRight, ClipboardList, Sparkles, BarChart3 } from 'lucide-react';
 import { ASSESSMENT_TYPES, ASSESSMENT_NAMES, ASSESSMENT_FLOW, LOCAL_STORAGE_KEYS, type AssessmentTypeValue } from '@/lib/constants';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -48,14 +48,13 @@ export default function AssessmentStartPage() {
       return;
     }
 
-    // Order the selected assessments based on the predefined ASSESSMENT_FLOW
     const orderedSelectedFlow = ASSESSMENT_FLOW.filter(type => selectedAssessments.includes(type));
 
     if (orderedSelectedFlow.length > 0) {
       localStorage.setItem(LOCAL_STORAGE_KEYS.SELECTED_ASSESSMENT_FLOW, JSON.stringify(orderedSelectedFlow));
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.CURRENT_ASSESSMENT_SCORES); // Clear any previous scores
       router.push(`/assessment/${orderedSelectedFlow[0]}`);
     } else {
-        // Should not happen if selectedAssessments.length > 0, but as a fallback
          toast({
             title: "Selection Error",
             description: "Could not determine the assessment flow. Please try again.",
@@ -78,11 +77,10 @@ export default function AssessmentStartPage() {
         </CardHeader>
         <CardContent className="space-y-8 p-4 sm:p-6 md:p-8">
           
-          {/* Standard Assessments Section */}
           <Card className="bg-muted/30 p-6 rounded-lg shadow-md">
             <CardHeader className="p-0 pb-4">
               <CardTitle className="text-xl font-semibold text-foreground flex items-center">
-                <CheckSquare className="mr-3 h-7 w-7 text-primary" />
+                <ClipboardList className="mr-3 h-7 w-7 text-primary" />
                 Standard Assessments
               </CardTitle>
               <CardDescription className="text-sm text-muted-foreground">
@@ -116,11 +114,10 @@ export default function AssessmentStartPage() {
             </CardFooter>
           </Card>
 
-          {/* AI Conversational Assessment Card */}
           <Card className="bg-muted/30 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
              <CardHeader className="p-0 pb-4">
                 <CardTitle className="text-xl font-semibold text-foreground flex items-center">
-                    <Sparkles className="mr-3 h-7 w-7 text-secondary-foreground" />
+                    <Sparkles className="mr-3 h-7 w-7 text-secondary" />
                     AI Conversational Assessment
                 </CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
@@ -138,7 +135,6 @@ export default function AssessmentStartPage() {
           
           <Separator className="my-8" />
 
-          {/* View Results Button */}
           <div className="text-center">
              <Button asChild size="lg" className="btn-neumorphic py-3 px-8">
                 <Link href="/assessment/results">
@@ -152,12 +148,12 @@ export default function AssessmentStartPage() {
           
           <div className="text-center pt-4">
              <Image
-              src="https://placehold.co/600x300.png"
+              src="https://images.unsplash.com/photo-1573497620053-ea5300f94f21"
               alt="A serene image representing mental wellness assessments options"
               width={600}
               height={300}
               className="object-cover w-full h-auto rounded-lg shadow-md"
-              data-ai-hint="wellness journey choice" 
+              
             />
           </div>
         </CardContent>

@@ -1,6 +1,6 @@
 
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator, type Auth } from 'firebase/auth';
+// Auth related imports removed: getAuth, connectAuthEmulator, type Auth
 import { getFirestore, connectFirestoreEmulator, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -14,22 +14,21 @@ const firebaseConfig = {
 };
 
 let app: FirebaseApp;
-let auth: Auth;
+// let auth: Auth; // Auth instance removed
 let db: Firestore;
 let firebaseInitializedSuccessfully = false;
 
 if (
-    !firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY" ||
-    !firebaseConfig.authDomain || firebaseConfig.authDomain === "YOUR_AUTH_DOMAIN" ||
+    // apiKey check might still be relevant if other Firebase services use it,
+    // but for now, we only check projectId as Firestore is the main remaining service.
+    // Auth specific checks removed.
     !firebaseConfig.projectId || firebaseConfig.projectId === "YOUR_PROJECT_ID"
 ) {
   console.error(
-    "CRITICAL: Firebase configuration is missing or uses placeholder values. " +
-    "Please ensure NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, and NEXT_PUBLIC_FIREBASE_PROJECT_ID " +
-    "are set correctly in your .env file with your actual Firebase project credentials. " +
-    "Firebase will not initialize correctly without them. " +
-    "Current API Key:", firebaseConfig.apiKey, 
-    "Current Auth Domain:", firebaseConfig.authDomain,
+    "CRITICAL: Firebase project ID is missing or uses placeholder values. " +
+    "Please ensure NEXT_PUBLIC_FIREBASE_PROJECT_ID " +
+    "is set correctly in your .env file with your actual Firebase project credentials. " +
+    "Firebase will not initialize correctly without it. " +
     "Current Project ID:", firebaseConfig.projectId
   );
 }
@@ -41,16 +40,15 @@ try {
     app = getApps()[0];
   }
 
-  auth = getAuth(app);
+  // auth = getAuth(app); // getAuth call removed
   db = getFirestore(app);
   firebaseInitializedSuccessfully = true;
 
-  // Connect to emulators if configured AND initialization was successful
   if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
     if (typeof window !== 'undefined') { 
-      console.log('Connecting to Firebase Emulators...');
+      console.log('Connecting to Firebase Emulators (Firestore only)...');
       
-      const authEmulatorUrl = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || "http://127.0.0.1:9099";
+      // Auth emulator connection removed
     
       const firestoreHostEnv = process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST;
       let firestoreEmulatorHostName = '127.0.0.1';
@@ -80,13 +78,6 @@ try {
       }
       
       try {
-        connectAuthEmulator(auth, authEmulatorUrl, { disableWarnings: true });
-        console.log(`Auth emulator attempting to connect to ${authEmulatorUrl}`);
-      } catch (e: any) {
-        console.error("Failed to connect to Auth emulator:", e.message);
-      }
-
-      try {
         connectFirestoreEmulator(db, firestoreEmulatorHostName, firestoreEmulatorPort);
         console.log(`Firestore emulator attempting to connect to ${firestoreEmulatorHostName}:${firestoreEmulatorPort}`);
       } catch (e: any) {
@@ -100,9 +91,10 @@ try {
    // @ts-ignore 
    if (!app) app = { name: '[uninitialized]', options: {}, automaticDataCollectionEnabled: false } as FirebaseApp;
    // @ts-ignore 
-   if (!auth) auth = { app } as Auth; 
+   // if (!auth) auth = { app } as Auth; 
    // @ts-ignore 
    if (!db) db = { app } as Firestore;
 }
 
-export { app, auth, db, firebaseInitializedSuccessfully };
+// auth export removed
+export { app, db, firebaseInitializedSuccessfully };

@@ -1,4 +1,6 @@
+
 import type { AssessmentTypeValue } from './constants';
+import { ASSESSMENT_TYPES } from './constants'; // Ensure ASSESSMENT_TYPES is imported if used directly here
 
 export interface QuestionOption {
   text: string;
@@ -31,7 +33,7 @@ export interface CompletedAssessmentSet {
   phq9Score?: number;
   aiFeedback?: string;
   aiRecommendations?: string;
-  requiresConsultation?: boolean; // Added field
+  requiresConsultation?: boolean;
 }
 
 export interface CurrentScores {
@@ -51,14 +53,14 @@ export interface UserGoal {
   id: string; // UUID
   assessmentType: AssessmentTypeValue;
   goalDefinitionType: GoalDefinitionType;
-  targetValue: number; // For 'REACH_SPECIFIC_SCORE', this is the score. For 'IMPROVE_CURRENT_SCORE', this is the point change.
-  targetDate?: string; // Optional deadline ISO string
-  startDate: string; // ISO string, Date goal was set
+  targetValue: number; 
+  targetDate?: string; 
+  startDate: string; 
   status: 'active' | 'achieved' | 'missed' | 'archived';
-  startScore: number; // Score at the time goal was set
-  currentScore?: number; // Most recent score for this assessment type since goal was set
-  notes?: string; // User's personal notes about the goal
-  description?: string; // Auto-generated or user-defined description for display
+  startScore: number; 
+  currentScore?: number; 
+  notes?: string; 
+  description?: string; 
 }
 
 export const MOOD_LEVELS = {

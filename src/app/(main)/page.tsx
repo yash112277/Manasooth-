@@ -3,14 +3,13 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-// import dynamic from 'next/dynamic'; // Removed dynamic import for 3D component
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ArrowRight, CheckCircle, MessageSquare, BarChartBig, Activity, Lightbulb, ShieldCheck, Smile, Brain, HeartPulse, TrendingUp, Target as GoalIcon, Info, Award, Users } from 'lucide-react';
 import Image from 'next/image';
-import { useAuth } from '@/contexts/AuthContext';
-import type { CompletedAssessmentSet, CurrentScores, UserGoal } from '@/lib/types';
+// useAuth import removed
+import type { CompletedAssessmentSet, UserGoal } from '@/lib/types';
 import { ASSESSMENT_NAMES, ASSESSMENT_TYPES, type AssessmentTypeValue, LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { ASSESSMENTS_DATA } from '@/lib/assessment-questions';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,12 +19,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage, type SupportedLanguage } from '@/contexts/LanguageContext'; 
 import { cn } from '@/lib/utils';
 
-// Removed: const DynamicScrollAnimatedCube = dynamic(() => import('@/components/common/ScrollAnimatedCube').then(mod => mod.ScrollAnimatedCubeScene), { ... });
 
-
-const getScoreInterpretationText = (type: keyof CurrentScores, score?: number): string => {
+const getScoreInterpretationText = (type: AssessmentTypeValue, score?: number): string => {
   if (score === undefined) return "Not taken";
-  const assessmentDetails = ASSESSMENTS_DATA[type as keyof typeof ASSESSMENTS_DATA];
+  const assessmentDetails = ASSESSMENTS_DATA[type];
   if (!assessmentDetails?.interpretation) return `Score: ${score}`;
   for (const range in assessmentDetails.interpretation) {
     const [min, max] = range.split('-').map(Number);
@@ -37,7 +34,7 @@ const getScoreInterpretationText = (type: keyof CurrentScores, score?: number): 
 };
 
 
-const getAssessmentIcon = (type: keyof CurrentScores) => {
+const getAssessmentIcon = (type: AssessmentTypeValue) => {
   switch (type) {
     case ASSESSMENT_TYPES.WHO5:
       return <Smile className="h-7 w-7 text-primary" />;
@@ -66,8 +63,8 @@ const dashboardMessageTranslations: Record<SupportedLanguage, string> = {
 };
 
 const anonMessageTranslations: Record<SupportedLanguage, string> = {
-  en: "Take confidential assessments, track your progress, set goals, and receive AI-powered insights. Log in or sign up to save your progress across devices.",
-  hi: "गोपनीय मूल्यांकन करें, अपनी प्रगति को ट्रैक करें, लक्ष्य निर्धारित करें, और एआई-संचालित अंतर्दृष्टि प्राप्त करें। उपकरणों पर अपनी प्रगति को सहेजने के लिए लॉग इन या साइन अप करें।"
+  en: "Take confidential assessments, track your progress, set goals, and receive AI-powered insights. Your data is stored locally in your browser.",
+  hi: "गोपनीय मूल्यांकन करें, अपनी प्रगति को ट्रैक करें, लक्ष्य निर्धारित करें, और एआई-संचालित अंतर्दृष्टि प्राप्त करें। आपका डेटा आपके ब्राउज़र में स्थानीय रूप से संग्रहीत है।"
 }
 
 const featureCardsTranslations: Record<string, Record<SupportedLanguage, string>> = {
@@ -113,7 +110,7 @@ const featureCardsTranslations: Record<string, Record<SupportedLanguage, string>
 
 
 export default function HomePage() {
-  const { user, loading: authLoading } = useAuth();
+  // const { user, loading: authLoading } = useAuth(); // authLoading removed, user always null
   const { translate, language } = useLanguage(); 
   const [latestAssessment, setLatestAssessment] = useState<CompletedAssessmentSet | null>(null);
   const [activeGoals, setActiveGoals] = useState<UserGoal[]>([]);
@@ -126,10 +123,13 @@ export default function HomePage() {
   const REMINDER_THRESHOLD_DAYS = 14;
 
   const [isClientMounted, setIsClientMounted] = useState(false);
+  useEffect(() => {
+    setIsClientMounted(true);
+  }, []);
+
 
   useEffect(() => {
     setIsClient(true);
-    setIsClientMounted(true);
   }, []);
 
   const updateGoalsBasedOnAssessment = useCallback((assessment: CompletedAssessmentSet | null) => {
@@ -152,7 +152,7 @@ export default function HomePage() {
     let goalsWereUpdated = false;
 
     if (assessment) {
-      const scoreMap: Record<AssessmentTypeValue, number | undefined> = {
+      const scoreMap: Partial<Record<AssessmentTypeValue, number | undefined>> = {
         [ASSESSMENT_TYPES.WHO5]: assessment.who5Score,
         [ASSESSMENT_TYPES.GAD7]: assessment.gad7Score,
         [ASSESSMENT_TYPES.PHQ9]: assessment.phq9Score,
@@ -221,7 +221,7 @@ export default function HomePage() {
   }, [isClient]);
 
   const loadAndProcessData = useCallback(() => {
-    if (authLoading || !isClient) { 
+    if (/*!authLoading && */ !isClient) { // authLoading check removed
         return;
     }
     setIsLoadingData(true); 
@@ -274,13 +274,13 @@ export default function HomePage() {
     } finally {
       setIsLoadingData(false); 
     }
-  }, [authLoading, isClient, language, updateGoalsBasedOnAssessment, loadGoalsOnly, REMINDER_THRESHOLD_DAYS]);
+  }, [/*authLoading,*/ isClient, language, updateGoalsBasedOnAssessment, loadGoalsOnly, REMINDER_THRESHOLD_DAYS]); // authLoading removed
   
   useEffect(() => {
     if (isClient) { 
       loadAndProcessData();
     }
-  }, [isClient, authLoading, user, language, loadAndProcessData]); 
+  }, [isClient, /*authLoading, user,*/ language, loadAndProcessData]); // authLoading, user removed
   
 
   return (
@@ -288,21 +288,21 @@ export default function HomePage() {
       <section className="text-center space-y-4 sm:space-y-6 w-full max-w-4xl animate-fadeIn">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground">
           {language === 'hi' ? "मनोसूथ " : ""}{translate(welcomeTranslations)}{language !== 'hi' ? " Manasooth" : ""}
-          {user && !authLoading && `, ${user.email?.split('@')[0] || 'Explorer'}!`}
+          {/* User-specific welcome removed: user && !authLoading && `, ${user.email?.split('@')[0] || 'Explorer'}!`*/}
         </h1>
         <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-          { (user && !authLoading) || latestAssessment || activeGoals.length > 0
+          { latestAssessment || activeGoals.length > 0 // Simplified condition as user is always null
             ? translate(dashboardMessageTranslations)
             : translate(taglineTranslations)}
-          {!user && !authLoading && ` ${translate(anonMessageTranslations)}`}
+          {` ${translate(anonMessageTranslations)}`} {/* Always show anon message */}
         </p>
       </section>
 
-      {isClient && (isLoadingData || authLoading) && (
+      {isClientMounted && (isLoadingData /*|| authLoading*/) && ( // authLoading removed
         <DashboardSkeleton />
       )}
 
-      {isClient && !isLoadingData && !authLoading && (user || latestAssessment || activeGoals.length > 0) && (
+      {isClientMounted && !isLoadingData /*&& !authLoading*/ && (latestAssessment || activeGoals.length > 0) && ( // authLoading removed, user is always null
         <section className="w-full max-w-5xl space-y-8 sm:space-y-10 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
            {showAssessmentReminder && (
              <Alert
@@ -336,15 +336,13 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-                {latestAssessment.who5Score !== undefined && (
-                  <ScoreCard type={ASSESSMENT_TYPES.WHO5} score={latestAssessment.who5Score} />
-                )}
-                {latestAssessment.gad7Score !== undefined && (
-                  <ScoreCard type={ASSESSMENT_TYPES.GAD7} score={latestAssessment.gad7Score} />
-                )}
-                {latestAssessment.phq9Score !== undefined && (
-                  <ScoreCard type={ASSESSMENT_TYPES.PHQ9} score={latestAssessment.phq9Score} />
-                )}
+                {Object.values(ASSESSMENT_TYPES).map(type => {
+                  const score = latestAssessment[`${type}Score` as keyof CompletedAssessmentSet] as number | undefined;
+                  if (score !== undefined) {
+                    return <ScoreCard key={type} type={type} score={score} />;
+                  }
+                  return null;
+                })}
               </CardContent>
             </Card>
           )}
@@ -449,7 +447,7 @@ export default function HomePage() {
         </section>
       )}
 
-      {isClient && !isLoadingData && !authLoading && !user && !latestAssessment && activeGoals.length === 0 && (
+      {isClientMounted && !isLoadingData /*&& !authLoading && !user*/ && !latestAssessment && activeGoals.length === 0 && ( // authLoading, user removed
         <>
         {showAssessmentReminder && (
              <Alert
@@ -482,26 +480,6 @@ export default function HomePage() {
         </div>
         </>
       )}
-
-      {/* Placeholder for 3D interactive component - Removed */}
-      {/* {isClientMounted && (
-        <section className="w-full max-w-xl animate-fadeIn" style={{ animationDelay: '0.5s' }}>
-          <Card className="card-hover-effect">
-            <CardHeader>
-              <CardTitle className="text-2xl sm:text-3xl flex items-center gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                Interactive Element
-              </CardTitle>
-               <CardDescription>
-                Explore a calming 3D visualization. Click and drag to rotate, scroll to zoom.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-               <DynamicScrollAnimatedCube />
-            </CardContent>
-          </Card>
-        </section>
-      )} */}
 
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 w-full max-w-7xl pt-10">
         <FeatureCard
@@ -553,12 +531,12 @@ export default function HomePage() {
         </div>
         <div className="flex-shrink-0 mt-6 md:mt-0 w-full md:w-auto max-w-md md:max-w-none">
           <Image 
-            src="https://placehold.co/450x350.png"
+            src="https://images.unsplash.com/photo-1517971071642-34a2d3ecc9cd"
             alt={translate({en: "Image depicting a serene path towards mental wellbeing", hi: "मानसिक कल्याण की ओर एक शांत मार्ग दर्शाती छवि"})}
             width={450} 
             height={350} 
             className="rounded-lg shadow-xl object-cover w-full h-auto"
-            data-ai-hint="organic illustration serene path"
+            
           />
         </div>
       </section>
@@ -566,12 +544,12 @@ export default function HomePage() {
        <section className="w-full max-w-5xl p-6 sm:p-10 bg-card rounded-xl shadow-2xl flex flex-col md:flex-row items-center gap-8 sm:gap-12 mt-8 animate-fadeIn card-hover-effect" style={{ animationDelay: '0.6s' }}>
         <div className="flex-shrink-0 mt-6 md:mt-0 w-full md:w-auto max-w-md md:max-w-none">
           <Image 
-            src="https://placehold.co/450x350.png"
+            src="https://images.unsplash.com/photo-1606761568499-6d2451b23c66"
             alt={translate({en: "Illustration of a calm mind or lotus flower", hi: "शांत मन या कमल के फूल का चित्रण"})}
             width={450} 
             height={350} 
             className="rounded-lg shadow-xl object-cover w-full h-auto"
-            data-ai-hint="botanical line art lotus"
+            
           />
         </div>
          <div className="flex-1 space-y-5">
@@ -627,7 +605,7 @@ function FeatureCard({ icon, title, description, link, linkText, className, styl
   );
 }
 
-function ScoreCard({ type, score }: { type: keyof CurrentScores, score: number }) {
+function ScoreCard({ type, score }: { type: AssessmentTypeValue, score: number }) {
   const { language, translate } = useLanguage();
   const assessmentInfo = ASSESSMENT_NAMES[type];
   
@@ -720,4 +698,3 @@ function DashboardSkeleton() {
     </section>
   );
 }
-

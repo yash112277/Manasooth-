@@ -20,14 +20,17 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ASSESSMENT_NAMES, ASSESSMENT_TYPES, LOCAL_STORAGE_KEYS, type AssessmentTypeValue } from '@/lib/constants';
 import { GOAL_DEFINITION_TYPES, type UserGoal, type GoalDefinitionType } from '@/lib/types';
-import type { CompletedAssessmentSet } from '@/lib/types';
+import type { CompletedAssessmentSet, CurrentScores } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { CalendarIcon, AlertCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
+// Create an array of valid AssessmentTypeValue from ASSESSMENT_TYPES
+const validAssessmentTypes = Object.values(ASSESSMENT_TYPES) as [AssessmentTypeValue, ...AssessmentTypeValue[]];
+
 const goalFormSchema = z.object({
-  assessmentType: z.nativeEnum(ASSESSMENT_TYPES),
+  assessmentType: z.enum(validAssessmentTypes), // Use z.enum with the array of valid types
   goalDefinitionType: z.nativeEnum(GOAL_DEFINITION_TYPES),
   targetValue: z.coerce.number().min(0, "Target value must be positive."),
   targetDate: z.date().optional(),
@@ -43,7 +46,7 @@ interface GoalFormProps {
 }
 
 export function GoalForm({ onGoalAdd, existingGoal = null, closeDialog }: GoalFormProps) {
-  const [currentScores, setCurrentScores] = useState<Record<AssessmentTypeValue, number | undefined>>({
+  const [currentScores, setCurrentScores] = useState<Partial<Record<AssessmentTypeValue, number | undefined>>>({
     [ASSESSMENT_TYPES.WHO5]: undefined,
     [ASSESSMENT_TYPES.GAD7]: undefined,
     [ASSESSMENT_TYPES.PHQ9]: undefined,
@@ -68,14 +71,19 @@ export function GoalForm({ onGoalAdd, existingGoal = null, closeDialog }: GoalFo
     setIsLoadingScores(true);
     const progressDataString = localStorage.getItem(LOCAL_STORAGE_KEYS.PROGRESS_DATA);
     if (progressDataString) {
-      const allProgress = JSON.parse(progressDataString) as CompletedAssessmentSet[];
-      if (allProgress.length > 0) {
-        const latestProgress = allProgress.sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime())[0];
-        setCurrentScores({
-          [ASSESSMENT_TYPES.WHO5]: latestProgress.who5Score,
-          [ASSESSMENT_TYPES.GAD7]: latestProgress.gad7Score,
-          [ASSESSMENT_TYPES.PHQ9]: latestProgress.phq9Score,
-        });
+      try {
+        const allProgress = JSON.parse(progressDataString) as CompletedAssessmentSet[];
+        if (allProgress.length > 0) {
+          const latestProgress = allProgress.sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime())[0];
+          setCurrentScores({
+            [ASSESSMENT_TYPES.WHO5]: latestProgress.who5Score,
+            [ASSESSMENT_TYPES.GAD7]: latestProgress.gad7Score,
+            [ASSESSMENT_TYPES.PHQ9]: latestProgress.phq9Score,
+          });
+        }
+      } catch (e) {
+        console.error("Error parsing progress data for goal form:", e);
+        // Keep currentScores as initially set (all undefined)
       }
     }
     setIsLoadingScores(false);
@@ -110,7 +118,7 @@ export function GoalForm({ onGoalAdd, existingGoal = null, closeDialog }: GoalFo
       targetDate: data.targetDate?.toISOString(),
       startDate: existingGoal?.startDate || new Date().toISOString(),
       status: existingGoal?.status || 'active',
-      startScore: startScore === undefined ? 0 : startScore, // Default to 0 if no score, though ideally form prevents this for 'improve'
+      startScore: startScore === undefined ? 0 : startScore, 
       notes: data.notes,
       description: description,
     };
@@ -224,7 +232,7 @@ export function GoalForm({ onGoalAdd, existingGoal = null, closeDialog }: GoalFo
                   selected={field.value}
                   onSelect={field.onChange}
                   initialFocus
-                  disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} // Disable past dates
+                  disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} 
                 />
               </PopoverContent>
             </Popover>
